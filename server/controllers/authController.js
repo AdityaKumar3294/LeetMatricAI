@@ -1,51 +1,117 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 
+// Register User
 const registerUser = async (req, res) => {
+    try {
+
+        // Get data from request body
+        const { name, email, password, leetcodeUsername } = req.body;
+
+        // Check required fields
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Please fill all required fields"
+            });
+        }
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: "User already exists"
+            });
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create new user
+        const user = new User({
+            name,
+            email,
+            password: hashedPassword,
+            leetcodeUsername
+        });
+
+        // Save user to MongoDB
+        await user.save();
+
+        // Send success response
+        res.status(201).json({
+            success: true,
+            message: "User registered successfully",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                leetcodeUsername: user.leetcodeUsername
+            }
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+};
+
+// Login User
+const loginUser = async (req, res) => {
   try {
 
-    const { name, email, password, leetcodeUsername } = req.body;
+    // Get email & password from request
+    const { email, password } = req.body;
 
     // Check required fields
-    if (!name || !email || !password) {
+    if (!email || !password) {
       return res.status(400).json({
         success: false,
         message: "Please fill all required fields",
       });
     }
 
-    // Check existing user
-    const existingUser = await User.findOne({ email });
+    // Find user by email
+    const user = await User.findOne({ email });
 
-    if (existingUser) {
+    if (!user) {
       return res.status(400).json({
         success: false,
-        message: "User already exists",
+        message: "User does not exist",
       });
     }
 
-    // Hash Password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Compare entered password with hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
 
-    // Create User
-    const user = new User({
-      name,
-      email,
-      password: hashedPassword,
-      leetcodeUsername,
-    });
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid password",
+      });
+    }
 
-    // Save User
-    await user.save();
-
-    res.status(201).json({
+    // Login Successful
+    res.status(200).json({
       success: true,
-      message: "User registered successfully",
+      message: "Login Successful",
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         leetcodeUsername: user.leetcodeUsername,
+        profileImage: user.profileImage,
+        role: user.role,
+        streak: user.streak,
+        xp: user.xp,
       },
     });
 
@@ -61,6 +127,8 @@ const registerUser = async (req, res) => {
   }
 };
 
+// Export Controllers
 module.exports = {
-  registerUser,
+    registerUser,
+    loginUser
 };
