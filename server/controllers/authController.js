@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // Register User
 const registerUser = async (req, res) => {
@@ -67,8 +68,6 @@ const registerUser = async (req, res) => {
 // Login User
 const loginUser = async (req, res) => {
   try {
-
-    // Get email & password from request
     const { email, password } = req.body;
 
     // Check required fields
@@ -85,11 +84,11 @@ const loginUser = async (req, res) => {
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: "User does not exist",
+        message: "User not found",
       });
     }
 
-    // Compare entered password with hashed password
+    // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -99,36 +98,76 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Login Successful
+    // Generate JWT Token
+   const payload = {
+    id: user._id
+  };
+
+  const token = jwt.sign(
+    payload,
+    process.env.JWT_SECRET,
+    {
+        expiresIn: "7d"
+    }
+  );
+
+    // Login Success
     res.status(200).json({
       success: true,
-      message: "Login Successful",
+      message: "Login successful",
+      token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         leetcodeUsername: user.leetcodeUsername,
-        profileImage: user.profileImage,
-        role: user.role,
-        streak: user.streak,
-        xp: user.xp,
       },
     });
 
   } catch (error) {
-
     console.log(error);
 
     res.status(500).json({
       success: false,
       message: error.message,
     });
-
   }
+};
+
+// Get Logged-in User
+const getCurrentUser = async (req, res) => {
+    try {
+
+        // Find user using ID from JWT
+        const user = await User.findById(req.user.id).select("-password");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            user
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
 };
 
 // Export Controllers
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    getCurrentUser
 };
