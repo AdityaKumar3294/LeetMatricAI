@@ -4,10 +4,10 @@ const cors = require("cors");
 require("dotenv").config();
 
 const connectDB = require("./config/db");
+
 const authRoutes = require("./routes/authRoutes");
-
-
 const leetcodeRoutes = require("./routes/leetcodeRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 
 // Create Express App
 const app = express();
@@ -22,6 +22,7 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/leetcode", leetcodeRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Authentication Routes
 app.use("/api/auth", authRoutes);
