@@ -52,6 +52,40 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+
+    leetcodeStats: {
+      totalSolved: {
+          type: Number,
+          default: 0
+      },
+      easySolved: {
+          type: Number,
+          default: 0
+      },
+      mediumSolved: {
+          type: Number,
+          default: 0
+      },
+      hardSolved: {
+          type: Number,
+          default: 0
+      },
+      ranking: {
+          type: Number,
+          default: 0
+      },
+      reputation: {
+          type: Number,
+          default: 0
+      },
+      avatar: {
+          type: String,
+          default: ""
+      },
+      lastSynced: {
+          type: Date
+      }
+    },
   },
   {
     timestamps: true,

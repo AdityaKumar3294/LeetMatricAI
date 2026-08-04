@@ -6,6 +6,9 @@ require("dotenv").config();
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 
+
+const leetcodeRoutes = require("./routes/leetcodeRoutes");
+
 // Create Express App
 const app = express();
 
@@ -15,6 +18,10 @@ connectDB();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/leetcode", leetcodeRoutes);
 
 // Authentication Routes
 app.use("/api/auth", authRoutes);
