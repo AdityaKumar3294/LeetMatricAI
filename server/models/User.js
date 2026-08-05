@@ -86,6 +86,16 @@ const userSchema = new mongoose.Schema(
           type: Date
       }
     },
+
+    studyPlan: {
+      content: {
+          type: String,
+          default: ""
+      },
+      generatedAt: {
+          type: Date
+      }
+    },
   },
   {
     timestamps: true,
