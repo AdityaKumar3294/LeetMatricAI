@@ -96,6 +96,58 @@ const userSchema = new mongoose.Schema(
           type: Date
       }
     },
+
+    companyRoadmaps: [
+      {
+          company: {
+              type: String,
+              required: true
+          },
+          content: {
+              type: String,
+              default: ""
+          },
+          generatedAt: {
+              type: Date,
+              default: Date.now
+          }
+      }
+    ],
+
+    resumeHistory: [
+      {
+          filename: {
+              type: String,
+              default: ""
+          },
+
+          originalname: {
+              type: String,
+              default: ""
+          },
+
+          path: {
+              type: String,
+              default: ""
+          },
+
+          extractedText: {
+              type: String,
+              default: ""
+          },
+
+          analysis: {
+              type: String,
+              default: ""
+          },
+
+          uploadedAt: {
+              type: Date,
+              default: Date.now
+          }
+      }
+    ],
+    
   },
   {
     timestamps: true,

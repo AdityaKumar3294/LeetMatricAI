@@ -22,6 +22,8 @@
     "graphql-request": "^7.4.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.8.1",
+    "multer": "^2.2.0",
+    "pdf-parse": "^2.4.5",
     "validator": "^13.15.35"
   },
   "devDependencies": {

@@ -8,6 +8,7 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const leetcodeRoutes = require("./routes/leetcodeRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const resumeRoutes = require("./routes/resumeRoutes");
 
 // Create Express App
 const app = express();
@@ -24,8 +25,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/leetcode", leetcodeRoutes);
 app.use("/api/ai", aiRoutes);
 
-// Authentication Routes
-app.use("/api/auth", authRoutes);
+app.use("/api/resume", resumeRoutes);
 
 // Home Route
 app.get("/", (req, res) => {

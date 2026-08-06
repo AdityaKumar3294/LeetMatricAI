@@ -1,13 +1,27 @@
 const express = require("express");
-const router = express.Router();
+
+const {
+    getAIAnalysis,
+    getStudyPlan,
+    getCompanyRoadmap,
+    getInterviewQuestions
+} = require("../controllers/aiController");
 
 const authMiddleware = require("../middleware/authMiddleware");
-const { getAIAnalysis,
-        getStudyPlan
- } = require("../controllers/aiController");
 
-// Protected Route
-router.get("/analyze", authMiddleware, getAIAnalysis);
+const router = express.Router();
+
+router.get("/analysis", authMiddleware, getAIAnalysis);
+
 router.get("/study-plan", authMiddleware, getStudyPlan);
+
+router.get("/company-roadmap/:company", authMiddleware, getCompanyRoadmap);
+
+// NEW ROUTE
+router.get(
+    "/interview-questions/:company",
+    authMiddleware,
+    getInterviewQuestions
+);
 
 module.exports = router;
