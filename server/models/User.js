@@ -147,6 +147,52 @@ const userSchema = new mongoose.Schema(
           }
       }
     ],
+
+    // ==============================
+    // AI Activity History
+    // ==============================
+
+    aiHistory: [
+        {
+            feature: {
+                type: String,
+                enum: [
+                    "chat",
+                    "resume",
+                    "study-plan",
+                    "roadmap",
+                    "interview",
+                    "explain",
+                    "bug",
+                    "optimize",
+                    "complexity",
+                    "convert",
+                    "generate-code"
+                ],
+                required: true
+            },
+
+            input: {
+                type: String,
+                default: ""
+            },
+
+            output: {
+                type: String,
+                default: ""
+            },
+
+            language: {
+                type: String,
+                default: ""
+            },
+
+            createdAt: {
+                type: Date,
+                default: Date.now
+            }
+        }
+    ],
     
   },
   {

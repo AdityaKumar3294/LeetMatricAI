@@ -11,7 +11,10 @@ const {
     getComplexityAnalysis,
     getConvertedCode,
     getGeneratedCodeFromProblem,
-    getCodingAssistantReply
+    getCodingAssistantReply,
+    getAIHistory,
+    deleteAIHistoryItem,
+    clearAIHistory
 } = require("../controllers/aiController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -58,6 +61,31 @@ router.post(
     "/chat",
     authMiddleware,
     getCodingAssistantReply
+);
+
+// ==============================
+// AI History
+// ==============================
+
+// Get all AI history
+router.get(
+    "/history",
+    authMiddleware,
+    getAIHistory
+);
+
+// Delete one history item
+router.delete(
+    "/history/:id",
+    authMiddleware,
+    deleteAIHistoryItem
+);
+
+// Clear entire history
+router.delete(
+    "/history",
+    authMiddleware,
+    clearAIHistory
 );
 
 module.exports = router;

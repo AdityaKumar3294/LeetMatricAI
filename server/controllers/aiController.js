@@ -352,7 +352,17 @@ const getExplainCode = async (req, res) => {
             });
         }
 
+        // Generate explanation
         const explanation = await explainCode(code, language);
+
+        // Save AI history
+        await saveAIHistory(
+            req.user.id,
+            "explain",
+            code,
+            explanation,
+            language
+        );
 
         res.status(200).json({
             success: true,
@@ -388,7 +398,17 @@ const getBugAnalysis = async (req, res) => {
             });
         }
 
+        // Generate bug analysis
         const analysis = await findBugs(code, language);
+
+        // Save history
+        await saveAIHistory(
+            req.user.id,
+            "bug-analysis",
+            code,
+            analysis,
+            language
+        );
 
         res.status(200).json({
             success: true,
@@ -588,7 +608,16 @@ const getCodingAssistantReply = async (req, res) => {
             });
         }
 
+        // Generate AI reply
         const reply = await codingAssistantChat(message);
+
+        // Save chat history
+        await saveAIHistory(
+            req.user.id,
+            "chat",
+            message,
+            reply
+        );
 
         res.status(200).json({
             success: true,
@@ -607,6 +636,160 @@ const getCodingAssistantReply = async (req, res) => {
     }
 };
 
+// ==============================
+// Save AI History Helper
+// ==============================
+
+const saveAIHistory = async (
+    userId,
+    feature,
+    input,
+    output,
+    language = ""
+) => {
+    try {
+        await User.findByIdAndUpdate(
+            userId,
+            {
+                $push: {
+                    aiHistory: {
+                        feature,
+                        input,
+                        output,
+                        language,
+                        createdAt: new Date(),
+                    },
+                },
+            },
+            { new: true }
+        );
+    } catch (error) {
+        console.log("AI History Save Error:", error.message);
+    }
+};
+
+// ==============================
+// Get AI History
+// ==============================
+
+const getAIHistory = async (req, res) => {
+
+    try {
+
+        const user = await User.findById(req.user.id)
+            .select("aiHistory");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const history = [...user.aiHistory].sort(
+            (a, b) =>
+                new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        res.status(200).json({
+            success: true,
+            total: history.length,
+            history
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
+
+// ==============================
+// Delete One AI History
+// ==============================
+
+const deleteAIHistoryItem = async (req, res) => {
+
+    try {
+
+        const { id } = req.params;
+
+        await User.findByIdAndUpdate(
+
+            req.user.id,
+
+            {
+                $pull: {
+                    aiHistory: {
+                        _id: id
+                    }
+                }
+            }
+
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "History deleted successfully."
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
+
+// ==============================
+// Clear AI History
+// ==============================
+
+const clearAIHistory = async (req, res) => {
+
+    try {
+
+        await User.findByIdAndUpdate(
+
+            req.user.id,
+
+            {
+                $set: {
+                    aiHistory: []
+                }
+            }
+
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "AI History Cleared."
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
+
 module.exports = {
     getAIAnalysis,
     getStudyPlan,
@@ -618,5 +801,8 @@ module.exports = {
     getComplexityAnalysis,
     getConvertedCode,
     getGeneratedCodeFromProblem,
-    getCodingAssistantReply
+    getCodingAssistantReply,
+    getAIHistory,
+    deleteAIHistoryItem,
+    clearAIHistory
 };
