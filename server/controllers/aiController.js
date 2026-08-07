@@ -4,7 +4,14 @@ const {
     generateAIAnalysis,
     generateStudyPlan,
     generateCompanyRoadmap,
-    generateInterviewQuestions
+    generateInterviewQuestions,
+    explainCode,
+    findBugs,
+    optimizeCode,
+    analyzeComplexity,
+    convertCode,
+    generateCodeFromProblem,
+    codingAssistantChat
 } = require("../services/aiService");
 
 // ==============================
@@ -329,9 +336,287 @@ const getInterviewQuestions = async (req, res) => {
 
 };
 
+// ==============================
+// Explain Code
+// ==============================
+const getExplainCode = async (req, res) => {
+
+    try {
+
+        const { code, language } = req.body;
+
+        if (!code || !language) {
+            return res.status(400).json({
+                success: false,
+                message: "Code and language are required."
+            });
+        }
+
+        const explanation = await explainCode(code, language);
+
+        res.status(200).json({
+            success: true,
+            explanation
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
+
+// ==============================
+// Find Bugs
+// ==============================
+const getBugAnalysis = async (req, res) => {
+
+    try {
+
+        const { code, language } = req.body;
+
+        if (!code || !language) {
+            return res.status(400).json({
+                success: false,
+                message: "Code and language are required."
+            });
+        }
+
+        const analysis = await findBugs(code, language);
+
+        res.status(200).json({
+            success: true,
+            analysis
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
+
+// ==============================
+// Optimize Code
+// ==============================
+const getOptimizedCode = async (req, res) => {
+
+    try {
+
+        const { code, language } = req.body;
+
+        // Validate request
+        if (!code || !language) {
+            return res.status(400).json({
+                success: false,
+                message: "Code and language are required."
+            });
+        }
+
+        // Generate optimized code using AI
+        const optimization = await optimizeCode(code, language);
+
+        res.status(200).json({
+            success: true,
+            optimization
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
+
+// ==============================
+// Analyze Time & Space Complexity
+// ==============================
+const getComplexityAnalysis = async (req, res) => {
+
+    try {
+
+        const { code, language } = req.body;
+
+        if (!code || !language) {
+            return res.status(400).json({
+                success: false,
+                message: "Code and language are required."
+            });
+        }
+
+        const analysis = await analyzeComplexity(code, language);
+
+        res.status(200).json({
+            success: true,
+            analysis
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
+
+// ==============================
+// Convert Code Between Languages
+// ==============================
+const getConvertedCode = async (req, res) => {
+
+    try {
+
+        const { code, sourceLanguage, targetLanguage } = req.body;
+
+        // Validate input
+        if (!code || !sourceLanguage || !targetLanguage) {
+            return res.status(400).json({
+                success: false,
+                message: "Code, sourceLanguage and targetLanguage are required."
+            });
+        }
+
+        // Prevent converting to same language
+        if (sourceLanguage === targetLanguage) {
+            return res.status(400).json({
+                success: false,
+                message: "Source and target languages cannot be the same."
+            });
+        }
+
+        // Generate converted code
+        const convertedCode = await convertCode(
+            code,
+            sourceLanguage,
+            targetLanguage
+        );
+
+        res.status(200).json({
+            success: true,
+            sourceLanguage,
+            targetLanguage,
+            convertedCode
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
+
+// ==============================
+// Generate Code from Problem
+// ==============================
+const getGeneratedCodeFromProblem = async (req, res) => {
+
+    try {
+
+        const { problem, language } = req.body;
+
+        if (!problem || !language) {
+            return res.status(400).json({
+                success: false,
+                message: "Problem statement and language are required."
+            });
+        }
+
+        const result = await generateCodeFromProblem(
+            problem,
+            language
+        );
+
+        res.status(200).json({
+            success: true,
+            result
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
+
+// ==============================
+// AI Coding Assistant Chat
+// ==============================
+const getCodingAssistantReply = async (req, res) => {
+    try {
+
+        const { message } = req.body;
+
+        if (!message) {
+            return res.status(400).json({
+                success: false,
+                message: "Message is required."
+            });
+        }
+
+        const reply = await codingAssistantChat(message);
+
+        res.status(200).json({
+            success: true,
+            reply
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+};
+
 module.exports = {
     getAIAnalysis,
     getStudyPlan,
     getCompanyRoadmap,
-    getInterviewQuestions
+    getInterviewQuestions,
+    getBugAnalysis,
+    getExplainCode,
+    getOptimizedCode,
+    getComplexityAnalysis,
+    getConvertedCode,
+    getGeneratedCodeFromProblem,
+    getCodingAssistantReply
 };
