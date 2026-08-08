@@ -193,6 +193,13 @@ const userSchema = new mongoose.Schema(
             }
         }
     ],
+
+    friends: [
+        {
+            type: require("mongoose").Schema.Types.ObjectId,
+            ref: "User"
+        }
+    ],
     
   },
   {

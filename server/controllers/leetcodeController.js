@@ -61,6 +61,73 @@ const getLeetCodeProfile = async (req, res) => {
     }
 };
 
+// ==============================
+// Sync Logged-in User's LeetCode
+// ==============================
+
+const syncLeetCodeProfile = async (req, res) => {
+    try {
+
+        const user = await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found."
+            });
+        }
+
+        if (!user.leetcodeUsername) {
+            return res.status(400).json({
+                success: false,
+                message: "Please add your LeetCode username first."
+            });
+        }
+
+        const profileData = await fetchLeetCodeStats(user.leetcodeUsername);
+
+        const {
+            totalSolved,
+            easySolved,
+            mediumSolved,
+            hardSolved,
+            ranking,
+            reputation,
+            avatar
+        } = profileData;
+
+        user.leetcodeStats = {
+            totalSolved,
+            easySolved,
+            mediumSolved,
+            hardSolved,
+            ranking,
+            reputation,
+            avatar,
+            lastSynced: new Date()
+        };
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "LeetCode synced successfully.",
+            data: user.leetcodeStats
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+};
+
 module.exports = {
-    getLeetCodeProfile
+    getLeetCodeProfile,
+    syncLeetCodeProfile
 };

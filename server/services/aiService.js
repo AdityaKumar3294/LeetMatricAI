@@ -827,6 +827,89 @@ Rules:
     }
 };
 
+// ==============================
+// AI Friend Comparison
+// ==============================
+
+const generateFriendComparison = async (yourProfile, friendProfile) => {
+
+    try {
+
+        const prompt = `
+You are an expert DSA mentor.
+
+Compare these two LeetCode profiles.
+
+PROFILE 1
+
+Username: ${yourProfile.leetcodeUsername}
+
+Total Solved: ${yourProfile.totalSolved}
+
+Easy: ${yourProfile.easySolved}
+
+Medium: ${yourProfile.mediumSolved}
+
+Hard: ${yourProfile.hardSolved}
+
+Ranking: ${yourProfile.ranking}
+
+----------------------------
+
+PROFILE 2
+
+Username: ${friendProfile.leetcodeUsername}
+
+Total Solved: ${friendProfile.totalSolved}
+
+Easy: ${friendProfile.easySolved}
+
+Medium: ${friendProfile.mediumSolved}
+
+Hard: ${friendProfile.hardSolved}
+
+Ranking: ${friendProfile.ranking}
+
+----------------------------
+
+Return ONLY markdown.
+
+Format:
+
+# Overall Comparison
+
+# Strengths of Profile 1
+
+# Strengths of Profile 2
+
+# Weaknesses
+
+# Who is Interview Ready?
+
+# Personalized Advice for Profile 1
+
+# Personalized Advice for Profile 2
+
+# Final Verdict
+`;
+
+        const response = await ai.models.generateContent({
+            model: "gemini-flash-latest",
+            contents: prompt
+        });
+
+        return response.text;
+
+    } catch (error) {
+
+        console.log(error);
+
+        throw new Error("AI Friend Comparison Failed");
+
+    }
+
+};
+
 module.exports = {
     generateAIAnalysis,
     generateStudyPlan,
@@ -839,5 +922,6 @@ module.exports = {
     analyzeComplexity,
     convertCode,
     generateCodeFromProblem,
-    codingAssistantChat
+    codingAssistantChat,
+    generateFriendComparison
 };

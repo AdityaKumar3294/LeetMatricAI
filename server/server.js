@@ -10,6 +10,8 @@ const leetcodeRoutes = require("./routes/leetcodeRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const resumeRoutes = require("./routes/resumeRoutes");
 const codeRoutes = require("./routes/codeRoutes");
+const friendRoutes = require("./routes/friendRoutes");
+const noteRoutes = require("./routes/noteRoutes");
 
 // Create Express App
 const app = express();
@@ -25,9 +27,10 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/leetcode", leetcodeRoutes);
 app.use("/api/ai", aiRoutes);
-
 app.use("/api/resume", resumeRoutes);
 app.use("/api/code", codeRoutes);
+app.use("/api/friends", friendRoutes);
+app.use("/api/notes", noteRoutes);
 
 // Home Route
 app.get("/", (req, res) => {

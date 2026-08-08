@@ -4,10 +4,22 @@ const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 
 const {
-    getLeetCodeProfile
+    getLeetCodeProfile,
+    syncLeetCodeProfile
 } = require("../controllers/leetcodeController");
 
-// Protected Route
-router.get("/:username", authMiddleware, getLeetCodeProfile);
+// Sync logged-in user's profile
+router.post(
+    "/sync",
+    authMiddleware,
+    syncLeetCodeProfile
+);
+
+// View any profile
+router.get(
+    "/:username",
+    authMiddleware,
+    getLeetCodeProfile
+);
 
 module.exports = router;
