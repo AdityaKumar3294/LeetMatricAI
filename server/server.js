@@ -12,6 +12,7 @@ const resumeRoutes = require("./routes/resumeRoutes");
 const codeRoutes = require("./routes/codeRoutes");
 const friendRoutes = require("./routes/friendRoutes");
 const noteRoutes = require("./routes/noteRoutes");
+const pdfRoutes = require("./routes/pdfRoutes");
 
 // Create Express App
 const app = express();
@@ -31,6 +32,7 @@ app.use("/api/resume", resumeRoutes);
 app.use("/api/code", codeRoutes);
 app.use("/api/friends", friendRoutes);
 app.use("/api/notes", noteRoutes);
+app.use("/api/pdf", pdfRoutes);
 
 // Home Route
 app.get("/", (req, res) => {
