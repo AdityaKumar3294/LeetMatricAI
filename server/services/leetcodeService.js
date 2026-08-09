@@ -3,6 +3,7 @@ const { request, gql } = require("graphql-request");
 const endpoint = "https://leetcode.com/graphql";
 
 const fetchLeetCodeStats = async (username) => {
+    console.log("LeetCode username received:", username);
     try {
 
         const query = gql`

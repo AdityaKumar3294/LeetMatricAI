@@ -201,6 +201,16 @@ const userSchema = new mongoose.Schema(
         }
     ],
     
+    streak: {
+        type: Number,
+        default: 0
+    },
+
+    lastActive: {
+        type: Date,
+        default: null
+    }
+
   },
   {
     timestamps: true,

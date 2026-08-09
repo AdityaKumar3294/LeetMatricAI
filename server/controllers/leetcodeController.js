@@ -1,6 +1,12 @@
 const User = require("../models/User");
 const { fetchLeetCodeStats } = require("../services/leetcodeService");
 
+const { awardBadges } = require("../services/badgeService");
+
+const { updateStreak } = require("../services/streakService");
+
+const { calculateXP } = require("../services/xpService");
+
 // Get LeetCode Profile
 const getLeetCodeProfile = async (req, res) => {
     try {
@@ -29,19 +35,7 @@ const getLeetCodeProfile = async (req, res) => {
             avatar
         } = profileData;
 
-        await User.findByIdAndUpdate(req.user.id, {
-          leetcodeUsername: username,
-          leetcodeStats: {
-              totalSolved,
-              easySolved,
-              mediumSolved,
-              hardSolved,
-              ranking,
-              reputation,
-              avatar,
-              lastSynced: new Date()
-         }
-        });
+        
 
         // Return response
         res.status(200).json({
@@ -107,12 +101,26 @@ const syncLeetCodeProfile = async (req, res) => {
             lastSynced: new Date()
         };
 
+        // Update daily streak
+        updateStreak(user);
+
+        // Save updated user
+        await user.save();
+
+        // Award badges
+        const unlockedBadges = await awardBadges(user);
+        
+        calculateXP(user, unlockedBadges);
+
         await user.save();
 
         res.status(200).json({
             success: true,
             message: "LeetCode synced successfully.",
-            data: user.leetcodeStats
+            data: user.leetcodeStats,
+            streak: user.streak,
+            xp: user.xp,
+            unlockedBadges
         });
 
     } catch (error) {

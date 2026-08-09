@@ -13,6 +13,12 @@ const codeRoutes = require("./routes/codeRoutes");
 const friendRoutes = require("./routes/friendRoutes");
 const noteRoutes = require("./routes/noteRoutes");
 const pdfRoutes = require("./routes/pdfRoutes");
+const badgeRoutes = require("./routes/badgeRoutes");
+const placementRoutes = require("./routes/placementRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
+const leaderboardRoutes = require("./routes/leaderboardRoutes");
+const statisticsRoutes = require("./routes/statisticsRoutes");
+const errorHandler = require("./middleware/errorHandler");
 
 // Create Express App
 const app = express();
@@ -33,6 +39,12 @@ app.use("/api/code", codeRoutes);
 app.use("/api/friends", friendRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api/pdf", pdfRoutes);
+app.use("/api/badges", badgeRoutes);
+app.use("/api/placement", placementRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/leaderboard", leaderboardRoutes);
+app.use("/api/statistics", statisticsRoutes);
+app.use(errorHandler);
 
 // Home Route
 app.get("/", (req, res) => {
