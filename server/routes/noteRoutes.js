@@ -5,6 +5,10 @@ const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 
 const {
+    validateNote
+} = require("../validators/noteValidator");
+
+const {
     createNote,
     getAllNotes,
     updateNote,
@@ -16,6 +20,7 @@ const {
 router.post(
     "/create",
     authMiddleware,
+    validateNote,
     createNote
 );
 

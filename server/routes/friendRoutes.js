@@ -5,6 +5,10 @@ const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 
 const {
+    validateFriend
+} = require("../validators/friendValidator");
+
+const {
     addFriend,
     getFriends,
     compareFriend,
@@ -16,6 +20,7 @@ const {
 router.post(
     "/add",
     authMiddleware,
+    validateFriend,
     addFriend
 );
 

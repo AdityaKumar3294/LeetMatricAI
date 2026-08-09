@@ -9,9 +9,23 @@ const {
 
 const authMiddleware = require("../middleware/authMiddleware");
 
+const {
+    validateRegister,
+    validateLogin
+} = require("../validators/authValidator");
+
 // Public Routes
-router.post("/register", registerUser);
-router.post("/login", loginUser);
+router.post(
+    "/register",
+    validateRegister,
+    registerUser
+);
+
+router.post(
+    "/login",
+    validateLogin,
+    loginUser
+);
 
 // Protected Route
 router.get("/me", authMiddleware, getCurrentUser);
