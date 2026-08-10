@@ -1,5 +1,128 @@
+import Sidebar from "../components/layout/Sidebar";
+import Navbar from "../components/layout/Navbar";
+
+import StatCard from "../components/dashboard/StatCard";
+
+import ProfileCard from "../components/dashboard/ProfileCard";
+import AnalyticsCard from "../components/dashboard/AnalyticsCard";
+
+import ProblemPieChart from "../components/dashboard/charts/ProblemPieChart";
+import WeeklyBarChart from "../components/dashboard/charts/WeeklyBarChart";
+
+import RecentActivity from "../components/dashboard/RecentActivity";
+import AIInsights from "../components/dashboard/AIInsights";
+
+import { useTheme } from "../context/ThemeContext";
+
 function Dashboard() {
-    return <h1>Dashboard</h1>;
+
+    const { theme } = useTheme();
+
+    return (
+
+        <div
+            className={`flex min-h-screen transition-colors duration-300 ${
+                theme === "dark"
+                    ? "bg-slate-950 text-white"
+                    : "bg-slate-100 text-slate-900"
+            }`}
+        >
+
+            {/* Sidebar */}
+
+            <Sidebar />
+
+            {/* Main Content */}
+
+            <div className="flex-1 ml-64">
+
+                <Navbar />
+
+                <main className="p-6">
+
+                    {/* Heading */}
+
+                    <h2 className="text-3xl font-bold mb-2">
+                        Welcome to LeetMetricAI 🚀
+                    </h2>
+
+                    <p
+                        className={`mb-8 ${
+                            theme === "dark"
+                                ? "text-slate-400"
+                                : "text-slate-600"
+                        }`}
+                    >
+                        Track your coding journey with AI-powered analytics.
+                    </p>
+
+                    {/* ================= Stats Cards ================= */}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                        <StatCard
+                            title="Total Solved"
+                            value="0"
+                            color="text-blue-600"
+                        />
+
+                        <StatCard
+                            title="Easy"
+                            value="0"
+                            color="text-green-600"
+                        />
+
+                        <StatCard
+                            title="Medium"
+                            value="0"
+                            color="text-yellow-500"
+                        />
+
+                        <StatCard
+                            title="Hard"
+                            value="0"
+                            color="text-red-600"
+                        />
+
+                    </div>
+
+                    {/* ================= Profile Section ================= */}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+
+                        <ProfileCard />
+
+                        <AnalyticsCard />
+
+                    </div>
+
+                    {/* ================= Charts Section ================= */}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+
+                        <ProblemPieChart />
+
+                        <WeeklyBarChart />
+
+                    </div>
+
+                    {/* ================= Recent Activity ================= */}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+
+                        <RecentActivity />
+
+                        <AIInsights />
+
+                    </div>
+
+                </main>
+
+            </div>
+
+        </div>
+
+    );
 }
 
 export default Dashboard;
