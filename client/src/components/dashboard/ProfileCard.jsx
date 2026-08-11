@@ -1,14 +1,20 @@
-import { User, Mail, Code2 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import {
+    User,
+    Mail,
+    Trophy,
+    Flame,
+    Star,
+    Award
+} from "lucide-react";
+
 import { useTheme } from "../../context/ThemeContext";
 
-const ProfileCard = () => {
+const ProfileCard = ({ dashboard }) => {
 
-    const { user } = useAuth();
     const { theme } = useTheme();
 
-    const firstLetter =
-        user?.name?.charAt(0)?.toUpperCase() || "?";
+    const user = dashboard?.user;
+    const stats = dashboard?.leetcodeStats;
 
     return (
 
@@ -16,12 +22,12 @@ const ProfileCard = () => {
             className={`
                 rounded-2xl
                 border
+                p-6
                 shadow-md
-                transition-all
-                duration-300
                 hover:shadow-xl
                 hover:-translate-y-1
-                p-6
+                transition-all
+                duration-300
                 ${
                     theme === "dark"
                         ? "bg-slate-900 border-slate-700"
@@ -30,169 +36,67 @@ const ProfileCard = () => {
             `}
         >
 
-            {/* Header */}
-
-            <h2
-                className={`text-xl font-bold mb-6 ${
-                    theme === "dark"
-                        ? "text-white"
-                        : "text-slate-900"
-                }`}
-            >
+            <h2 className="text-xl font-bold mb-6">
                 👤 Profile
             </h2>
 
-            {/* Avatar */}
+            <div className="flex items-center gap-5 mb-6">
 
-            <div className="flex flex-col items-center mb-8">
+                <img
+                    src={stats?.avatar}
+                    alt="Avatar"
+                    className="w-24 h-24 rounded-full border-4 border-blue-500"
+                />
 
-                <div className="w-20 h-20 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-bold shadow-lg">
+                <div>
 
-                    {firstLetter}
+                    <h3 className="text-2xl font-bold">
+                        {user?.name}
+                    </h3>
+
+                    <p
+                        className={
+                            theme === "dark"
+                                ? "text-slate-400"
+                                : "text-slate-600"
+                        }
+                    >
+                        @{user?.leetcodeUsername}
+                    </p>
 
                 </div>
-
-                <h3
-                    className={`mt-4 text-xl font-bold ${
-                        theme === "dark"
-                            ? "text-white"
-                            : "text-slate-900"
-                    }`}
-                >
-                    {user?.name || "User"}
-                </h3>
-
-                <p
-                    className={`text-sm ${
-                        theme === "dark"
-                            ? "text-slate-400"
-                            : "text-slate-500"
-                    }`}
-                >
-                    Keep solving. Keep growing 🚀
-                </p>
 
             </div>
 
-            {/* User Information */}
+            <div className="space-y-4">
 
-            <div className="space-y-5">
-
-                {/* Name */}
-
-                <div className="flex items-center gap-4">
-
-                    <div className="p-3 rounded-xl bg-blue-100">
-
-                        <User
-                            size={20}
-                            className="text-blue-600"
-                        />
-
-                    </div>
-
-                    <div>
-
-                        <p
-                            className={`text-sm ${
-                                theme === "dark"
-                                    ? "text-slate-400"
-                                    : "text-slate-500"
-                            }`}
-                        >
-                            Name
-                        </p>
-
-                        <p
-                            className={`font-semibold ${
-                                theme === "dark"
-                                    ? "text-white"
-                                    : "text-slate-900"
-                            }`}
-                        >
-                            {user?.name || "N/A"}
-                        </p>
-
-                    </div>
-
+                <div className="flex items-center gap-3">
+                    <Mail size={18} className="text-blue-500" />
+                    <span>{user?.email}</span>
                 </div>
 
-                {/* Email */}
-
-                <div className="flex items-center gap-4">
-
-                    <div className="p-3 rounded-xl bg-green-100">
-
-                        <Mail
-                            size={20}
-                            className="text-green-600"
-                        />
-
-                    </div>
-
-                    <div>
-
-                        <p
-                            className={`text-sm ${
-                                theme === "dark"
-                                    ? "text-slate-400"
-                                    : "text-slate-500"
-                            }`}
-                        >
-                            Email
-                        </p>
-
-                        <p
-                            className={`font-semibold break-all ${
-                                theme === "dark"
-                                    ? "text-white"
-                                    : "text-slate-900"
-                            }`}
-                        >
-                            {user?.email || "N/A"}
-                        </p>
-
-                    </div>
-
+                <div className="flex items-center gap-3">
+                    <Trophy size={18} className="text-yellow-500" />
+                    <span>Ranking : {stats?.ranking}</span>
                 </div>
 
-                {/* LeetCode */}
+                <div className="flex items-center gap-3">
+                    <Star size={18} className="text-green-500" />
+                    <span>XP : {dashboard?.xp}</span>
+                </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                    <Flame size={18} className="text-orange-500" />
+                    <span>Streak : {dashboard?.streak} days</span>
+                </div>
 
-                    <div className="p-3 rounded-xl bg-yellow-100">
-
-                        <Code2
-                            size={20}
-                            className="text-yellow-600"
-                        />
-
-                    </div>
-
-                    <div>
-
-                        <p
-                            className={`text-sm ${
-                                theme === "dark"
-                                    ? "text-slate-400"
-                                    : "text-slate-500"
-                            }`}
-                        >
-                            LeetCode Username
-                        </p>
-
-                        <p
-                            className={`font-semibold ${
-                                theme === "dark"
-                                    ? "text-white"
-                                    : "text-slate-900"
-                            }`}
-                        >
-                            {user?.leetcodeUsername || "Not Added"}
-                        </p>
-
-                    </div>
-
+                <div className="flex items-center gap-3">
+                    <Award size={18} className="text-purple-500" />
+                    <span>
+                        {dashboard?.placementLevel}
+                        {" "}
+                        ({dashboard?.placementScore}%)
+                    </span>
                 </div>
 
             </div>

@@ -13,10 +13,56 @@ import RecentActivity from "../components/dashboard/RecentActivity";
 import AIInsights from "../components/dashboard/AIInsights";
 
 import { useTheme } from "../context/ThemeContext";
+import { useEffect, useState } from "react";
+import { getDashboardData } from "../services/dashboardService";
 
 function Dashboard() {
 
     const { theme } = useTheme();
+    const [dashboard, setDashboard] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+
+        const fetchDashboard = async () => {
+
+            try {
+
+                const response = await getDashboardData();
+
+                console.log(JSON.stringify(response, null, 2));
+
+                setDashboard(response.dashboard);
+
+            } catch (error) {
+
+                console.log(error);
+
+            } finally {
+
+                setLoading(false);
+
+            }
+
+        };
+
+        fetchDashboard();
+
+    }, []);
+
+    if (loading) {
+
+        return (
+
+            <div className="flex justify-center items-center h-screen text-2xl font-bold">
+
+                Loading Dashboard...
+
+            </div>
+
+        );
+
+    }
 
     return (
 
@@ -62,25 +108,25 @@ function Dashboard() {
 
                         <StatCard
                             title="Total Solved"
-                            value="0"
+                            value={dashboard?.leetcodeStats?.totalSolved || 0}
                             color="text-blue-600"
                         />
 
                         <StatCard
                             title="Easy"
-                            value="0"
+                            value={dashboard?.leetcodeStats?.easySolved || 0}
                             color="text-green-600"
                         />
 
                         <StatCard
                             title="Medium"
-                            value="0"
+                            value={dashboard?.leetcodeStats?.mediumSolved || 0}
                             color="text-yellow-500"
                         />
 
                         <StatCard
                             title="Hard"
-                            value="0"
+                            value={dashboard?.leetcodeStats?.hardSolved || 0}
                             color="text-red-600"
                         />
 
@@ -90,9 +136,8 @@ function Dashboard() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
 
-                        <ProfileCard />
-
-                        <AnalyticsCard />
+                        <ProfileCard dashboard={dashboard} />
+                        <AnalyticsCard dashboard={dashboard} />
 
                     </div>
 
@@ -100,9 +145,8 @@ function Dashboard() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
 
-                        <ProblemPieChart />
-
-                        <WeeklyBarChart />
+                        <ProblemPieChart dashboard={dashboard} />
+                        <WeeklyBarChart dashboard={dashboard} />
 
                     </div>
 
