@@ -1,6 +1,8 @@
 const User = require("../models/User");
 const Badge = require("../models/Badge");
 const Note = require("../models/Note");
+const { generateAIInsights } = require("../services/aiInsightService");
+const { generateAICoach } = require("../services/aiCoachService");
 
 const {
     calculatePlacementScore
@@ -18,6 +20,9 @@ const getDashboard = async (req, res) => {
                 message: "User not found."
             });
         }
+
+        const aiInsights = generateAIInsights(user);
+        const aiCoach = generateAICoach(user);
 
         const badges = await Badge.find({
             user: req.user.id
@@ -48,6 +53,10 @@ const getDashboard = async (req, res) => {
                 },
 
                 leetcodeStats: user.leetcodeStats,
+
+                aiInsights,
+
+                aiCoach,
 
                 xp: user.xp,
 
@@ -100,7 +109,8 @@ const getDashboard = async (req, res) => {
                     }
                 ]
 
-            }
+            },
+            aiInsights
 
         });
 

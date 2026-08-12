@@ -16,11 +16,13 @@ import { useTheme } from "../context/ThemeContext";
 import { useEffect, useState } from "react";
 import { getDashboardData } from "../services/dashboardService";
 import { getRecentActivities } from "../services/recentActivityService";
+import AICoach from "../components/dashboard/AICoach";
 
 function Dashboard() {
 
     const { theme } = useTheme();
     const [dashboard, setDashboard] = useState(null);
+    const [aiInsights, setAIInsights] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activities, setActivities] = useState([]);
 
@@ -32,9 +34,9 @@ function Dashboard() {
 
                 const response = await getDashboardData();
 
-                console.log(JSON.stringify(response, null, 2));
-
                 setDashboard(response.dashboard);
+
+                setAIInsights(response.aiInsights);
                 
                 const activityResponse = await getRecentActivities();
                 console.log("Activity Response:", activityResponse);
@@ -160,10 +162,15 @@ function Dashboard() {
                     {/* ================= Recent Activity ================= */}
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-                        
-                        <RecentActivity activities={activities} />
 
-                        <AIInsights />
+                        <RecentActivity activities={activities} />
+                        <AIInsights aiInsights={aiInsights} />
+
+                    </div>
+
+                    <div className="mt-8">
+
+                        <AICoach aiCoach={dashboard?.aiCoach} />
 
                     </div>
 
