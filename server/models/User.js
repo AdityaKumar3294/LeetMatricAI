@@ -53,6 +53,33 @@ const userSchema = new mongoose.Schema(
       default: 0,
     },
 
+    xpBreakdown: {
+        easy: {
+            type: Number,
+            default: 0
+        },
+
+        medium: {
+            type: Number,
+            default: 0
+        },
+
+        hard: {
+            type: Number,
+            default: 0
+        },
+
+        streak: {
+            type: Number,
+            default: 0
+        },
+
+        badges: {
+            type: Number,
+            default: 0
+        }
+    },
+
     leetcodeStats: {
       totalSolved: {
           type: Number,

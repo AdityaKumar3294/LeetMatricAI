@@ -184,11 +184,11 @@ const syncLeetCodeProfile = async (req, res) => {
         // Calculate XP
         //----------------------------------------------------
 
-        calculateXP(user, unlockedBadges);
-
-        //----------------------------------------------------
-        // Save Again
-        //----------------------------------------------------
+        const xpData =
+            await calculateXP(
+                user,
+                unlockedBadges
+            );
 
         await user.save();
 
@@ -207,6 +207,8 @@ const syncLeetCodeProfile = async (req, res) => {
             streak: user.streak,
 
             xp: user.xp,
+            xpBreakdown: xpData.breakdown,
+            earnedXP: xpData.earnedXP,
 
             unlockedBadges
 

@@ -17,6 +17,8 @@ import { useEffect, useState } from "react";
 import { getDashboardData } from "../services/dashboardService";
 import { getRecentActivities } from "../services/recentActivityService";
 import AICoach from "../components/dashboard/AICoach";
+import LevelCard from "../components/dashboard/LevelCard";
+import XPHistory from "../components/dashboard/XPHistory";
 
 function Dashboard() {
 
@@ -150,6 +152,14 @@ function Dashboard() {
 
                     </div>
 
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+
+                        <LevelCard dashboard={dashboard} />
+
+                        <XPHistory />
+
+                    </div>
+
                     {/* ================= Charts Section ================= */}
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
@@ -164,7 +174,7 @@ function Dashboard() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
 
                         <RecentActivity activities={activities} />
-                        <AIInsights aiInsights={aiInsights} />
+                        <AIInsights aiInsights={dashboard?.aiInsights} />
 
                     </div>
 
