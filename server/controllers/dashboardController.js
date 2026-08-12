@@ -67,7 +67,38 @@ const getDashboard = async (req, res) => {
 
                 studyPlan: user.studyPlan || [],
 
-                companyRoadmaps: user.companyRoadmaps || []
+                companyRoadmaps: user.companyRoadmaps || [],
+
+                weeklyActivity: [
+                    {
+                        day: "Mon",
+                        solved: 3
+                    },
+                    {
+                        day: "Tue",
+                        solved: 6
+                    },
+                    {
+                        day: "Wed",
+                        solved: 2
+                    },
+                    {
+                        day: "Thu",
+                        solved: 8
+                    },
+                    {
+                        day: "Fri",
+                        solved: 5
+                    },
+                    {
+                        day: "Sat",
+                        solved: 10
+                    },
+                    {
+                        day: "Sun",
+                        solved: 4
+                    }
+                ]
 
             }
 

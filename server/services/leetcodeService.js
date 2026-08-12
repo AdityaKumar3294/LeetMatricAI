@@ -8,8 +8,11 @@ const fetchLeetCodeStats = async (username) => {
 
         const query = gql`
             query getUserProfile($username: String!) {
+
                 matchedUser(username: $username) {
+
                     username
+
                     profile {
                         realName
                         userAvatar
@@ -23,6 +26,8 @@ const fetchLeetCodeStats = async (username) => {
                             count
                         }
                     }
+
+                    
                 }
             }
         `;
@@ -66,9 +71,14 @@ const fetchLeetCodeStats = async (username) => {
 
     } catch (error) {
 
-        console.log(error);
+        console.log("========= LEETCODE ERROR =========");
+console.log(error.response?.errors);
+console.log(error.response?.data);
+console.log(error.message);
+console.log(error);
+console.log("==================================");
 
-        throw new Error("Unable to fetch LeetCode profile");
+throw error;
 
     }
 };

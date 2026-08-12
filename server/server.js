@@ -19,6 +19,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
 const statisticsRoutes = require("./routes/statisticsRoutes");
 const errorHandler = require("./middleware/errorHandler");
+const recentActivityRoutes = require("./routes/recentActivityRoutes");
 
 // Create Express App
 const app = express();
@@ -48,6 +49,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
 app.use("/api/statistics", statisticsRoutes);
 app.use(errorHandler);
+app.use("/api/recent-activity", recentActivityRoutes);
 
 // Home Route
 app.get("/", (req, res) => {

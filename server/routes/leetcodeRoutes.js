@@ -16,7 +16,6 @@ const {
 router.post(
     "/sync",
     authMiddleware,
-    validateLeetCodeUsername,
     syncLeetCodeProfile
 );
 
@@ -24,6 +23,7 @@ router.post(
 router.get(
     "/:username",
     authMiddleware,
+    validateLeetCodeUsername,
     getLeetCodeProfile
 );
 
