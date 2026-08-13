@@ -23,7 +23,7 @@ const Navbar = () => {
     return (
 
         <header
-            className={`sticky top-0 z-20 flex items-center justify-between px-8 py-5 shadow-md transition-all duration-300 border-b
+            className={`sticky top-0 z-20 flex items-center justify-between px-8 py-3 shadow-md transition-all duration-300 border-b
             ${
                 theme === "dark"
                     ? "bg-slate-900 border-slate-700"

@@ -10,6 +10,10 @@ const {
     calculatePlacementScore
 } = require("../services/placementService");
 
+const {
+    syncUserLeetCode
+} = require("../services/leetcodeSyncService");
+
 
 // ===================================================
 // Get Dashboard
@@ -23,7 +27,7 @@ const getDashboard = async (req, res) => {
         // Find User
         // ===================================================
 
-        const user = await User.findById(req.user.id);
+        let user = await User.findById(req.user.id);
 
         if (!user) {
 
@@ -31,6 +35,73 @@ const getDashboard = async (req, res) => {
 
                 success: false,
                 message: "User not found."
+
+            });
+
+        }
+
+
+        // ===================================================
+        // AUTO SYNC LEETCODE
+        // ===================================================
+
+        if (user.leetcodeUsername) {
+
+            try {
+
+                const lastSynced =
+                    user.leetcodeStats?.lastSynced;
+
+                const now = new Date();
+
+                const syncInterval =
+                    10 * 60 * 1000; // 10 minutes
+
+                const shouldSync =
+                    !lastSynced ||
+                    (now - new Date(lastSynced)) > syncInterval;
+
+                if (shouldSync) {
+
+                    console.log(
+                        "🔄 Auto syncing LeetCode..."
+                    );
+
+                    await syncUserLeetCode(user);
+
+                } else {
+
+                    console.log(
+                        "⚡ Using cached LeetCode data."
+                    );
+
+                }
+
+            } catch (syncError) {
+
+                console.log(
+                    "Auto sync failed:",
+                    syncError.message
+                );
+
+            }
+
+        }
+
+
+        // ===================================================
+        // Reload Latest User Data
+        // ===================================================
+
+        user = await User.findById(req.user.id);
+
+
+        if (!user) {
+
+            return res.status(404).json({
+
+                success: false,
+                message: "User not found after sync."
 
             });
 
@@ -106,13 +177,9 @@ const getDashboard = async (req, res) => {
             user.xpBreakdown || {
 
                 easy: 0,
-
                 medium: 0,
-
                 hard: 0,
-
                 streak: 0,
-
                 badges: 0
 
             };
@@ -153,7 +220,7 @@ const getDashboard = async (req, res) => {
 
 
                 // ==========================================
-                // LeetCode Stats
+                // Latest LeetCode Stats
                 // ==========================================
 
                 leetcodeStats:
@@ -309,7 +376,10 @@ const getDashboard = async (req, res) => {
 
     catch (error) {
 
-        console.log("Dashboard Error:", error);
+        console.log(
+            "Dashboard Error:",
+            error
+        );
 
         return res.status(500).json({
 

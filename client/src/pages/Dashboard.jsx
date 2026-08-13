@@ -20,6 +20,9 @@ import AICoach from "../components/dashboard/AICoach";
 import LevelCard from "../components/dashboard/LevelCard";
 import XPHistory from "../components/dashboard/XPHistory";
 
+import { RefreshCw } from "lucide-react";
+import { syncLeetCode } from "../services/leetcodeService";
+
 function Dashboard() {
 
     const { theme } = useTheme();
@@ -27,6 +30,35 @@ function Dashboard() {
     const [aiInsights, setAIInsights] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activities, setActivities] = useState([]);
+    const [syncing, setSyncing] = useState(false);
+
+    const handleSync = async () => {
+
+        try {
+
+            setSyncing(true);
+
+            const response = await syncLeetCode();
+
+            console.log("Sync Response:", response);
+
+            // Refresh dashboard data
+            const dashboardResponse = await getDashboardData();
+
+            setDashboard(dashboardResponse.dashboard);
+            setAIInsights(dashboardResponse.dashboard?.aiInsights);
+
+        } catch (error) {
+
+            console.log("Sync Error:", error);
+
+        } finally {
+
+            setSyncing(false);
+
+        }
+
+    };
 
     useEffect(() => {
 
@@ -99,19 +131,54 @@ function Dashboard() {
 
                     {/* Heading */}
 
-                    <h2 className="text-3xl font-bold mb-2">
-                        Welcome to LeetMetricAI 🚀
-                    </h2>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
 
-                    <p
-                        className={`mb-8 ${
-                            theme === "dark"
-                                ? "text-slate-400"
-                                : "text-slate-600"
-                        }`}
-                    >
-                        Track your coding journey with AI-powered analytics.
-                    </p>
+                    <div>
+
+                        <h2 className="text-3xl font-bold mb-2">
+                            Welcome to LeetMetricAI 🚀
+                        </h2>
+
+                        <p
+                            className={`${
+                                theme === "dark"
+                                    ? "text-slate-400"
+                                    : "text-slate-600"
+                            }`}
+                        >
+                            Track your coding journey with AI-powered analytics.
+                        </p>
+
+                    </div>
+
+                        <button
+                            onClick={handleSync}
+                            disabled={syncing}
+                            className={`
+                                flex items-center justify-center gap-2
+                                px-5 py-3
+                                rounded-xl
+                                font-semibold
+                                text-white
+                                transition-all duration-300
+                                ${
+                                    syncing
+                                        ? "bg-blue-400 cursor-not-allowed"
+                                        : "bg-blue-600 hover:bg-blue-700 hover:-translate-y-0.5"
+                                }
+                            `}
+                        >
+
+                            <RefreshCw
+                                size={18}
+                                className={syncing ? "animate-spin" : ""}
+                            />
+
+                            {syncing ? "Syncing..." : "Sync Now"}
+
+                        </button>
+
+                    </div>
 
                     {/* ================= Stats Cards ================= */}
 

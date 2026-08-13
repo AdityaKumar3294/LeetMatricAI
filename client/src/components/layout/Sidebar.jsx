@@ -47,7 +47,7 @@ const Sidebar = () => {
                   : "bg-slate-900 text-white"
           }`}
       >
-      <div className="text-2xl font-bold text-center py-6 border-b border-slate-700">
+      <div className="text-2xl font-bold text-center py-6.5 border-b border-slate-700">
         LeetMetricAI 🚀
       </div>
 
