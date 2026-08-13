@@ -1,4 +1,6 @@
-const calculateLevel = (xp) => {
+const calculateLevel = (xp = 0) => {
+
+    xp = Math.max(0, Number(xp) || 0);
 
     const level = Math.floor(xp / 100) + 1;
 

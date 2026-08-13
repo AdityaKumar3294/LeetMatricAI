@@ -1,45 +1,89 @@
 const User = require("../models/User");
 
+const {
+    calculateLeaderboardData
+} = require("../services/leaderboardService");
+
+// ======================================
+// Get Leaderboard
+// ======================================
+
 const getLeaderboard = async (req, res) => {
 
     try {
 
+        // ======================================
+        // Get Users
+        // ======================================
+
         const users = await User.find({})
             .select(
-                "name leetcodeUsername xp streak leetcodeStats.totalSolved"
+                "name leetcodeUsername leetcodeStats xp streak"
             )
-            .sort({
-                xp: -1,
-                "leetcodeStats.totalSolved": -1
-            });
+            .lean();
 
-        const leaderboard = users.map((user, index) => ({
-            rank: index + 1,
-            name: user.name,
-            leetcodeUsername: user.leetcodeUsername,
-            xp: user.xp || 0,
-            streak: user.streak || 0,
-            totalSolved: user.leetcodeStats?.totalSolved || 0
-        }));
 
-        res.status(200).json({
+        // ======================================
+        // Calculate Leaderboard
+        // ======================================
+
+        const leaderboard =
+            calculateLeaderboardData(users);
+
+
+        // ======================================
+        // Find Current User
+        // ======================================
+
+        const currentUser =
+            leaderboard.find(
+
+                (user) =>
+                    user.id.toString() ===
+                    req.user.id.toString()
+
+            );
+
+
+        // ======================================
+        // Response
+        // ======================================
+
+        return res.status(200).json({
+
             success: true,
-            totalUsers: leaderboard.length,
-            leaderboard
+
+            totalUsers:
+                leaderboard.length,
+
+            leaderboard,
+
+            currentUser:
+                currentUser || null
+
         });
 
-    } catch (error) {
+    }
 
-        console.log(error);
+    catch (error) {
 
-        res.status(500).json({
+        console.log(
+            "Leaderboard Error:",
+            error
+        );
+
+        return res.status(500).json({
+
             success: false,
+
             message: error.message
+
         });
 
     }
 
 };
+
 
 module.exports = {
     getLeaderboard

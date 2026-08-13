@@ -17,48 +17,48 @@ function AppRoutes() {
                 <Route path="/" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route
-                path="/dashboard"
-                element={
-                    <ProtectedRoute>
-                    <Dashboard />
-                    </ProtectedRoute>
-                }
+                    path="/dashboard"
+                    element={
+                        <ProtectedRoute>
+                        <Dashboard />
+                        </ProtectedRoute>
+                    }
                 />
 
                 <Route
-                path="/profile"
-                element={
-                    <ProtectedRoute>
-                    <Profile />
-                    </ProtectedRoute>
-                }
+                    path="/profile"
+                    element={
+                        <ProtectedRoute>
+                        <Profile />
+                        </ProtectedRoute>
+                    }
                 />
 
                 <Route
-                path="/notes"
-                element={
-                    <ProtectedRoute>
-                    <Notes />
-                    </ProtectedRoute>
-                }
+                    path="/notes"
+                    element={
+                        <ProtectedRoute>
+                        <Notes />
+                        </ProtectedRoute>
+                    }
                 />
 
                 <Route
-                path="/friends"
-                element={
-                    <ProtectedRoute>
-                    <Friends />
-                    </ProtectedRoute>
-                }
+                    path="/friends"
+                    element={
+                        <ProtectedRoute>
+                        <Friends />
+                        </ProtectedRoute>
+                    }
                 />
 
                 <Route
-                path="/leaderboard"
-                element={
-                    <ProtectedRoute>
-                    <Leaderboard />
-                    </ProtectedRoute>
-                }
+                    path="/leaderboard"
+                    element={
+                        <ProtectedRoute>
+                        <Leaderboard />
+                        </ProtectedRoute>
+                    }
                 />
                 <Route path="*" element={<NotFound />} />
             </Routes>

@@ -85,6 +85,88 @@ const addFriend = async (req, res) => {
     }
 };
 
+// Search User
+
+const searchUsers = async (req, res) => {
+
+    try {
+
+        const { q } = req.query;
+
+        if (!q) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Search query is required."
+            });
+
+        }
+
+        const users = await User.find({
+
+            _id: { $ne: req.user.id },
+
+            $or: [
+
+                {
+                    name: {
+                        $regex: q,
+                        $options: "i"
+                    }
+                },
+
+                {
+                    email: {
+                        $regex: q,
+                        $options: "i"
+                    }
+                },
+
+                {
+                    leetcodeUsername: {
+                        $regex: q,
+                        $options: "i"
+                    }
+                }
+
+            ]
+
+        }).select(
+
+            "name email leetcodeUsername leetcodeStats.avatar leetcodeStats.totalSolved xp"
+
+        );
+
+        res.status(200).json({
+
+            success: true,
+
+            totalResults: users.length,
+
+            users
+
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+
+            success: false,
+
+            message: error.message
+
+        });
+
+    }
+
+};
+
+module.exports = {
+    searchUsers
+};
+
 // ==============================
 // Get Friends List
 // ==============================
