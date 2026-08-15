@@ -831,7 +831,14 @@ Rules:
 // AI Friend Comparison
 // ==============================
 
-const generateFriendComparison = async (yourProfile, friendProfile) => {
+// ==============================
+// AI Friend Comparison
+// ==============================
+
+const generateFriendComparison = async (
+    yourProfile,
+    friendProfile
+) => {
 
     try {
 
@@ -843,15 +850,10 @@ Compare these two LeetCode profiles.
 PROFILE 1
 
 Username: ${yourProfile.leetcodeUsername}
-
 Total Solved: ${yourProfile.totalSolved}
-
 Easy: ${yourProfile.easySolved}
-
 Medium: ${yourProfile.mediumSolved}
-
 Hard: ${yourProfile.hardSolved}
-
 Ranking: ${yourProfile.ranking}
 
 ----------------------------
@@ -859,15 +861,10 @@ Ranking: ${yourProfile.ranking}
 PROFILE 2
 
 Username: ${friendProfile.leetcodeUsername}
-
 Total Solved: ${friendProfile.totalSolved}
-
 Easy: ${friendProfile.easySolved}
-
 Medium: ${friendProfile.mediumSolved}
-
 Hard: ${friendProfile.hardSolved}
-
 Ranking: ${friendProfile.ranking}
 
 ----------------------------
@@ -893,18 +890,99 @@ Format:
 # Final Verdict
 `;
 
-        const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
-            contents: prompt
-        });
 
-        return response.text;
+        // ==========================================
+        // Retry Gemini on temporary 503 errors
+        // ==========================================
 
-    } catch (error) {
+        const maxRetries = 3;
 
-        console.log(error);
+        let lastError;
 
-        throw new Error("AI Friend Comparison Failed");
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+
+            try {
+
+                console.log(
+                    `Gemini Friend Comparison Attempt ${attempt}/${maxRetries}`
+                );
+
+                const response =
+                    await ai.models.generateContent({
+
+                        model: "gemini-3.6-flash",
+
+                        contents: prompt
+
+                    });
+
+                return response.text;
+
+            }
+
+            catch (error) {
+
+                lastError = error;
+
+                const status =
+                    error?.status ||
+                    error?.response?.status ||
+                    error?.code;
+
+                console.log(
+                    `Gemini attempt ${attempt} failed:`,
+                    error.message
+                );
+
+
+                // Retry only transient errors
+                if (
+                    status !== 503 &&
+                    status !== 429 &&
+                    status !== 500
+                ) {
+
+                    throw error;
+
+                }
+
+
+                if (attempt < maxRetries) {
+
+                    const delay =
+                        Math.pow(2, attempt) * 1000;
+
+                    console.log(
+                        `Retrying Gemini in ${delay / 1000}s...`
+                    );
+
+                    await new Promise(
+                        (resolve) =>
+                            setTimeout(resolve, delay)
+                    );
+
+                }
+
+            }
+
+        }
+
+
+        throw lastError;
+
+    }
+
+    catch (error) {
+
+        console.log(
+            "Gemini Friend Comparison Error:",
+            error
+        );
+
+        throw new Error(
+            "AI Friend Comparison temporarily unavailable. Please try again."
+        );
 
     }
 
