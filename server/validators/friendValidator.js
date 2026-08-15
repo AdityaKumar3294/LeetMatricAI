@@ -2,15 +2,18 @@ const validator = require("validator");
 
 const validateFriend = (req, res, next) => {
 
-    const { username } = req.body;
+    const { leetcodeUsername } = req.body;
 
-    if (!username || validator.isEmpty(username.trim())) {
+    if (
+        !leetcodeUsername ||
+        validator.isEmpty(leetcodeUsername.trim())
+    ) {
 
         return res.status(400).json({
 
             success: false,
 
-            message: "Friend username is required."
+            message: "LeetCode username is required."
 
         });
 

@@ -9,6 +9,7 @@ import Notes from "../pages/Notes";
 import Friends from "../pages/Friends";
 import Leaderboard from "../pages/Leaderboard";
 import NotFound from "../pages/NotFound";
+import PublicProfile from "../pages/PublicProfile";
 
 function AppRoutes() {
     return (
@@ -59,6 +60,11 @@ function AppRoutes() {
                         <Leaderboard />
                         </ProtectedRoute>
                     }
+                />
+
+                <Route
+                    path="/friends/profile/:userId"
+                    element={<PublicProfile />}
                 />
                 <Route path="*" element={<NotFound />} />
             </Routes>

@@ -3,155 +3,295 @@ const { generateFriendComparison } = require("../services/aiService");
 
 // ==============================
 // Add Friend
-// ==============================
 const addFriend = async (req, res) => {
+
     try {
 
         const { leetcodeUsername } = req.body;
 
         if (!leetcodeUsername) {
+
             return res.status(400).json({
+
                 success: false,
+
                 message: "LeetCode username is required."
+
             });
+
         }
 
-        // Logged in user
-        const currentUser = await User.findById(req.user.id);
+
+        // ==========================================
+        // Current User
+        // ==========================================
+
+        const currentUser =
+            await User.findById(req.user.id);
 
         if (!currentUser) {
+
             return res.status(404).json({
+
                 success: false,
+
                 message: "User not found."
+
             });
+
         }
 
-        // Find friend by LeetCode username
-        const friend = await User.findOne({
-            leetcodeUsername
-        });
+
+        // ==========================================
+        // Find Friend
+        // ==========================================
+
+        const friend =
+            await User.findOne({
+                leetcodeUsername
+            });
 
         if (!friend) {
+
             return res.status(404).json({
+
                 success: false,
+
                 message: "Friend not found."
+
             });
+
         }
 
-        // Prevent adding yourself
-        if (friend._id.toString() === currentUser._id.toString()) {
+
+        // ==========================================
+        // Prevent Self
+        // ==========================================
+
+        if (
+            friend._id.toString() ===
+            currentUser._id.toString()
+        ) {
+
             return res.status(400).json({
+
                 success: false,
+
                 message: "You cannot add yourself."
+
             });
+
         }
 
-        // Already added?
-        const alreadyAdded = currentUser.friends.some(
-            (id) => id.toString() === friend._id.toString()
+
+        // ==========================================
+        // Check Existing Friendship
+        // ==========================================
+
+        const alreadyFriend =
+            currentUser.friends.some(
+
+                (id) =>
+                    id.toString() ===
+                    friend._id.toString()
+
+            );
+
+
+        if (alreadyFriend) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message: "You are already friends."
+
+            });
+
+        }
+
+
+        // ==========================================
+        // Add Mutual Friendship
+        // ==========================================
+
+        currentUser.friends.push(
+            friend._id
         );
 
-        if (alreadyAdded) {
-            return res.status(400).json({
-                success: false,
-                message: "Friend already added."
-            });
-        }
+        friend.friends.push(
+            currentUser._id
+        );
 
-        // Add friend
-        currentUser.friends.push(friend._id);
+
+        // ==========================================
+        // Save Both Users
+        // ==========================================
 
         await currentUser.save();
 
-        res.status(200).json({
+        await friend.save();
+
+
+        // ==========================================
+        // Response
+        // ==========================================
+
+        return res.status(200).json({
+
             success: true,
-            message: "Friend added successfully.",
+
+            message:
+                "Friend added successfully.",
+
             friend: {
+
+                id: friend._id,
+
                 name: friend.name,
+
                 email: friend.email,
-                leetcodeUsername: friend.leetcodeUsername
+
+                leetcodeUsername:
+                    friend.leetcodeUsername
+
             }
-        });
 
-    } catch (error) {
-
-        console.log(error);
-
-        res.status(500).json({
-            success: false,
-            message: error.message
         });
 
     }
-};
 
-// Search User
+    catch (error) {
+
+        console.log(
+            "Add Friend Error:",
+            error
+        );
+
+        return res.status(500).json({
+
+            success: false,
+
+            message: error.message
+
+        });
+
+    }
+
+};
+// ==============================
+// Search Users
+// ==============================
 
 const searchUsers = async (req, res) => {
 
     try {
 
-        const { q } = req.query;
+        const { query } = req.query;
 
-        if (!q) {
+        if (!query || query.trim() === "") {
 
             return res.status(400).json({
+
                 success: false,
                 message: "Search query is required."
+
+            });
+
+        }
+
+        const searchRegex =
+            new RegExp(query.trim(), "i");
+
+        const currentUser =
+            await User.findById(req.user.id)
+                .select("friends");
+
+        if (!currentUser) {
+
+            return res.status(404).json({
+
+                success: false,
+                message: "User not found."
+
             });
 
         }
 
         const users = await User.find({
 
-            _id: { $ne: req.user.id },
+            _id: {
+                $ne: req.user.id
+            },
 
             $or: [
 
                 {
-                    name: {
-                        $regex: q,
-                        $options: "i"
-                    }
+                    name: searchRegex
                 },
 
                 {
-                    email: {
-                        $regex: q,
-                        $options: "i"
-                    }
+                    leetcodeUsername: searchRegex
                 },
 
                 {
-                    leetcodeUsername: {
-                        $regex: q,
-                        $options: "i"
-                    }
+                    email: searchRegex
                 }
 
             ]
 
-        }).select(
+        })
+            .select(
+                "name email leetcodeUsername leetcodeStats xp"
+            )
+            .limit(20);
 
-            "name email leetcodeUsername leetcodeStats.avatar leetcodeStats.totalSolved xp"
 
-        );
+        const usersWithStatus =
+            users.map((user) => {
 
-        res.status(200).json({
+                const isFriend =
+                    currentUser.friends.some(
+
+                        (friendId) =>
+                            friendId.toString() ===
+                            user._id.toString()
+
+                    );
+
+                return {
+
+                    ...user.toObject(),
+
+                    isFriend
+
+                };
+
+            });
+
+
+        return res.status(200).json({
 
             success: true,
 
-            totalResults: users.length,
+            totalUsers:
+                usersWithStatus.length,
 
-            users
+            users:
+                usersWithStatus
 
         });
 
-    } catch (error) {
+    }
 
-        console.log(error);
+    catch (error) {
 
-        res.status(500).json({
+        console.log(
+            "Search Users Error:",
+            error
+        );
+
+        return res.status(500).json({
 
             success: false,
 
@@ -161,10 +301,6 @@ const searchUsers = async (req, res) => {
 
     }
 
-};
-
-module.exports = {
-    searchUsers
 };
 
 // ==============================
@@ -354,6 +490,133 @@ const removeFriend = async (req, res) => {
 };
 
 // ==============================
+// Get Public User Profile
+// ==============================
+const getPublicProfile = async (req, res) => {
+
+    try {
+
+        const { userId } = req.params;
+
+        const currentUser =
+            await User.findById(req.user.id)
+                .select("friends");
+
+        if (!currentUser) {
+
+            return res.status(404).json({
+
+                success: false,
+                message: "Current user not found."
+
+            });
+
+        }
+
+
+        const user =
+            await User.findById(userId)
+                .select(
+                    "name leetcodeUsername leetcodeStats xp streak friends"
+                );
+
+        if (!user) {
+
+            return res.status(404).json({
+
+                success: false,
+                message: "User not found."
+
+            });
+
+        }
+
+
+        const stats =
+            user.leetcodeStats || {};
+
+
+        const isFriend =
+            currentUser.friends.some(
+
+                (friendId) =>
+                    friendId.toString() ===
+                    user._id.toString()
+
+            );
+
+
+        return res.status(200).json({
+
+            success: true,
+
+            profile: {
+
+                id: user._id,
+
+                name: user.name,
+
+                leetcodeUsername:
+                    user.leetcodeUsername,
+
+                avatar:
+                    stats.avatar || null,
+
+                totalSolved:
+                    stats.totalSolved || 0,
+
+                easySolved:
+                    stats.easySolved || 0,
+
+                mediumSolved:
+                    stats.mediumSolved || 0,
+
+                hardSolved:
+                    stats.hardSolved || 0,
+
+                ranking:
+                    stats.ranking || "N/A",
+
+                reputation:
+                    stats.reputation || 0,
+
+                xp:
+                    user.xp || 0,
+
+                streak:
+                    user.streak || 0,
+
+                friendsCount:
+                    user.friends?.length || 0,
+
+                isFriend
+
+            }
+
+        });
+
+    }
+
+    catch (error) {
+
+        console.log(
+            "Public Profile Error:",
+            error
+        );
+
+        return res.status(500).json({
+
+            success: false,
+
+            message: error.message
+
+        });
+
+    }
+
+};
+
+// ==============================
 // AI Friend Comparison
 // ==============================
 
@@ -411,5 +674,7 @@ module.exports = {
     getFriends,
     removeFriend,
     compareFriend,
-    aiCompareFriend
+    aiCompareFriend,
+    searchUsers,
+    getPublicProfile
 };

@@ -13,10 +13,16 @@ const {
     getFriends,
     compareFriend,
     removeFriend,
-    aiCompareFriend
+    aiCompareFriend,
+    searchUsers,
+    getPublicProfile
 } = require("../controllers/friendController");
 
+
+// ==============================
 // Add Friend
+// ==============================
+
 router.post(
     "/add",
     authMiddleware,
@@ -24,12 +30,21 @@ router.post(
     addFriend
 );
 
+
+// ==============================
 // Get Friends List
+// ==============================
+
 router.get(
     "/",
     authMiddleware,
     getFriends
 );
+
+
+// ==============================
+// Compare Friend
+// ==============================
 
 router.get(
     "/compare/:friendId",
@@ -37,17 +52,44 @@ router.get(
     compareFriend
 );
 
+
+// ==============================
 // Remove Friend
+// ==============================
+
 router.delete(
     "/remove/:friendId",
     authMiddleware,
     removeFriend
 );
 
+
+// ==============================
+// AI Friend Comparison
+// ==============================
+
 router.get(
     "/compare-ai/:friendId",
     authMiddleware,
     aiCompareFriend
+);
+
+
+// ==============================
+// Search Users
+// ==============================
+
+router.get(
+    "/search",
+    authMiddleware,
+    searchUsers
+);
+
+// Public User Profile
+router.get(
+    "/profile/:userId",
+    authMiddleware,
+    getPublicProfile
 );
 
 module.exports = router;
