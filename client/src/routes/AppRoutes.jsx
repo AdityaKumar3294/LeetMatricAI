@@ -10,6 +10,7 @@ import Friends from "../pages/Friends";
 import Leaderboard from "../pages/Leaderboard";
 import NotFound from "../pages/NotFound";
 import PublicProfile from "../pages/PublicProfile";
+import FriendComparison from "../pages/FriendComparison";
 
 function AppRoutes() {
     return (
@@ -64,9 +65,26 @@ function AppRoutes() {
 
                 <Route
                     path="/friends/profile/:userId"
-                    element={<PublicProfile />}
+                    element={
+                    <ProtectedRoute>
+                    <PublicProfile />
+                    </ProtectedRoute>
+                    }
                 />
-                <Route path="*" element={<NotFound />} />
+                <Route path="*" element={
+                    <ProtectedRoute>
+                        <NotFound />
+                    </ProtectedRoute>
+                    } />
+
+                <Route
+                    path="/friends/compare/:friendId"
+                    element={
+                    <ProtectedRoute>
+                    <FriendComparison />
+                    </ProtectedRoute>
+                    }
+                />
             </Routes>
         </BrowserRouter>
     );

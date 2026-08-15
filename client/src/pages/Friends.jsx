@@ -921,16 +921,38 @@ function Friends() {
 
                                             {/* Profile Button */}
 
-                                            <button
-                                                onClick={() =>
-                                                    navigate(
-                                                        `/friends/profile/${friend._id}`
-                                                    )
-                                                }
-                                                className="w-full mt-5 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
-                                            >
-                                                View Profile
-                                            </button>
+                                            {/* Friend Actions */}
+
+                                            <div className="grid grid-cols-2 gap-3 mt-5">
+
+                                                {/* View Profile */}
+
+                                                <button
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/friends/profile/${friend._id}`
+                                                        )
+                                                    }
+                                                    className="px-4 py-2 rounded-xl border border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 dark:hover:bg-blue-950 transition"
+                                                >
+                                                    Profile
+                                                </button>
+
+
+                                                {/* Compare */}
+
+                                                <button
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/friends/compare/${friend._id}`
+                                                        )
+                                                    }
+                                                    className="px-4 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition"
+                                                >
+                                                    Compare
+                                                </button>
+
+                                            </div>
 
                                         </div>
 
