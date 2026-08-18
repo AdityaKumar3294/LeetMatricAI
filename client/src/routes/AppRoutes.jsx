@@ -1,4 +1,9 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import {
+    BrowserRouter,
+    Routes,
+    Route
+} from "react-router-dom";
+
 import ProtectedRoute from "../components/ProtectedRoute";
 
 import Login from "../pages/Login";
@@ -11,54 +16,82 @@ import Leaderboard from "../pages/Leaderboard";
 import NotFound from "../pages/NotFound";
 import PublicProfile from "../pages/PublicProfile";
 import FriendComparison from "../pages/FriendComparison";
+import NoteDetails from "../pages/NoteDetails";
+
 
 function AppRoutes() {
+
     return (
+
         <BrowserRouter>
+
             <Routes>
-                <Route path="/" element={<Login />} />
-                <Route path="/register" element={<Register />} />
+
+                {/* Public */}
+
+                <Route
+                    path="/"
+                    element={<Login />}
+                />
+
+                <Route
+                    path="/register"
+                    element={<Register />}
+                />
+
+
+                {/* Dashboard */}
+
                 <Route
                     path="/dashboard"
                     element={
                         <ProtectedRoute>
-                        <Dashboard />
+                            <Dashboard />
                         </ProtectedRoute>
                     }
                 />
+
+
+                {/* Profile */}
 
                 <Route
                     path="/profile"
                     element={
                         <ProtectedRoute>
-                        <Profile />
+                            <Profile />
                         </ProtectedRoute>
                     }
                 />
+
+
+                {/* Notes */}
 
                 <Route
                     path="/notes"
                     element={
                         <ProtectedRoute>
-                        <Notes />
+                            <Notes />
                         </ProtectedRoute>
                     }
                 />
+
+                <Route
+                    path="/notes/:noteId"
+                    element={
+                        <ProtectedRoute>
+                            <NoteDetails />
+                        </ProtectedRoute>
+                    }
+                />
+
+
+                {/* Friends */}
 
                 <Route
                     path="/friends"
                     element={
                         <ProtectedRoute>
-                        <Friends />
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/leaderboard"
-                    element={
-                        <ProtectedRoute>
-                        <Leaderboard />
+                            <Friends />
                         </ProtectedRoute>
                     }
                 />
@@ -66,28 +99,52 @@ function AppRoutes() {
                 <Route
                     path="/friends/profile/:userId"
                     element={
-                    <ProtectedRoute>
-                    <PublicProfile />
-                    </ProtectedRoute>
+                        <ProtectedRoute>
+                            <PublicProfile />
+                        </ProtectedRoute>
                     }
                 />
-                <Route path="*" element={
-                    <ProtectedRoute>
-                        <NotFound />
-                    </ProtectedRoute>
-                    } />
 
                 <Route
                     path="/friends/compare/:friendId"
                     element={
-                    <ProtectedRoute>
-                    <FriendComparison />
-                    </ProtectedRoute>
+                        <ProtectedRoute>
+                            <FriendComparison />
+                        </ProtectedRoute>
                     }
                 />
+
+
+                {/* Leaderboard */}
+
+                <Route
+                    path="/leaderboard"
+                    element={
+                        <ProtectedRoute>
+                            <Leaderboard />
+                        </ProtectedRoute>
+                    }
+                />
+
+
+                {/* 404 */}
+
+                <Route
+                    path="*"
+                    element={
+                        <ProtectedRoute>
+                            <NotFound />
+                        </ProtectedRoute>
+                    }
+                />
+
             </Routes>
+
         </BrowserRouter>
+
     );
+
 }
+
 
 export default AppRoutes;
