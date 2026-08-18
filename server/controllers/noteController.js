@@ -1,4 +1,5 @@
 const Note = require("../models/Note");
+const mongoose = require("mongoose");
 
 // ==============================
 // Create Note
@@ -86,6 +87,96 @@ const getAllNotes = async (req, res) => {
         console.log(error);
 
         res.status(500).json({
+
+            success: false,
+
+            message: error.message
+
+        });
+
+    }
+
+};
+
+// ==============================
+// Get Single Note
+// ==============================
+
+const getNoteById = async (req, res) => {
+
+    try {
+
+        const { id } = req.params;
+
+
+        // ==========================================
+        // Validate MongoDB ObjectId
+        // ==========================================
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message: "Invalid note ID."
+
+            });
+
+        }
+
+
+        // ==========================================
+        // Find User's Note
+        // ==========================================
+
+        const note =
+            await Note.findOne({
+
+                _id: id,
+
+                user: req.user.id
+
+            });
+
+
+        // ==========================================
+        // Not Found
+        // ==========================================
+
+        if (!note) {
+
+            return res.status(404).json({
+
+                success: false,
+
+                message: "Note not found."
+
+            });
+
+        }
+
+
+        // ==========================================
+        // Response
+        // ==========================================
+
+        return res.status(200).json({
+
+            success: true,
+
+            note
+
+        });
+
+    } catch (error) {
+
+        console.log(
+            "Get Note By ID Error:",
+            error
+        );
+
+        return res.status(500).json({
 
             success: false,
 
@@ -290,6 +381,7 @@ const searchNotes = async (req, res) => {
 module.exports = {
     createNote,
     getAllNotes,
+    getNoteById,
     updateNote,
     deleteNote,
     togglePinNote,
