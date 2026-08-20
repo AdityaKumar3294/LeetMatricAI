@@ -5,804 +5,1323 @@ const {
     generateStudyPlan,
     generateCompanyRoadmap,
     generateInterviewQuestions,
+    analyzeResume,
     explainCode,
     findBugs,
     optimizeCode,
     analyzeComplexity,
     convertCode,
     generateCodeFromProblem,
-    codingAssistantChat
+    codingAssistantChat,
+    generateFriendComparison
 } = require("../services/aiService");
 
-// ==============================
-// Generate AI Analysis
-// ==============================
+
+// ============================================================
+// Helper: Get Current User
+// ============================================================
+
+const getCurrentUser = async (req) => {
+
+    if (!req.user || !req.user.id) {
+        throw new Error("User authentication information not found");
+    }
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    return user;
+};
+
+
+// ============================================================
+// Build Profile Data
+// ============================================================
+
+const buildProfileData = (user) => {
+
+    return {
+
+        username:
+            user.leetcodeUsername || user.name || "",
+
+        totalSolved:
+            user.leetcodeStats?.totalSolved || 0,
+
+        easySolved:
+            user.leetcodeStats?.easySolved || 0,
+
+        mediumSolved:
+            user.leetcodeStats?.mediumSolved || 0,
+
+        hardSolved:
+            user.leetcodeStats?.hardSolved || 0,
+
+        ranking:
+            user.leetcodeStats?.ranking || 0,
+
+        reputation:
+            user.leetcodeStats?.reputation || 0,
+
+        xp:
+            user.xp || 0,
+
+        streak:
+            user.streak || 0,
+
+        xpBreakdown: {
+
+            easy:
+                user.xpBreakdown?.easy || 0,
+
+            medium:
+                user.xpBreakdown?.medium || 0,
+
+            hard:
+                user.xpBreakdown?.hard || 0,
+
+            streak:
+                user.xpBreakdown?.streak || 0,
+
+            badges:
+                user.xpBreakdown?.badges || 0
+        },
+
+        lastActive:
+            user.lastActive || null,
+
+        lastSynced:
+            user.leetcodeStats?.lastSynced || null
+    };
+};
+
+
+// ============================================================
+// AI PERFORMANCE ANALYSIS
+// GET /api/ai/analysis
+// ============================================================
+
 const getAIAnalysis = async (req, res) => {
     try {
+        console.log("=> [AI Controller] 1. Received request for AI Analysis...");
+        
+        const user = await getCurrentUser(req);
+        console.log("=> [AI Controller] 2. User authenticated successfully.");
+        
+        const profileData = buildProfileData(user);
+        console.log("=> [AI Controller] 3. Profile data built. Calling Gemini API...");
 
-        // Find logged-in user
-        const user = await User.findById(req.user.id);
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
-
-        // Check if LeetCode profile is synced
-        if (
-            !user.leetcodeStats ||
-            user.leetcodeStats.totalSolved === 0
-        ) {
-            return res.status(400).json({
-                success: false,
-                message: "Please sync your LeetCode profile first."
-            });
-        }
-
-        // Create profile object
-        const profileData = {
-            username: user.leetcodeUsername,
-            totalSolved: user.leetcodeStats.totalSolved,
-            easySolved: user.leetcodeStats.easySolved,
-            mediumSolved: user.leetcodeStats.mediumSolved,
-            hardSolved: user.leetcodeStats.hardSolved,
-            ranking: user.leetcodeStats.ranking
-        };
-
-        // Generate AI Analysis
+        // If the server hangs, it will be on this exact line
         const analysis = await generateAIAnalysis(profileData);
+        
+        console.log("=> [AI Controller] 4. Gemini analysis generated successfully!");
 
         res.status(200).json({
             success: true,
-            analysis
+            data: analysis 
         });
 
     } catch (error) {
-
-        console.log(error);
-
+        console.error("=> [AI Controller Error]:", error);
         res.status(500).json({
             success: false,
-            message: error.message
+            message: error.message || "AI Analysis Failed"
         });
-
     }
 };
 
-// ==============================
-// Generate AI Study Plan
-// ==============================
+
+// ============================================================
+// AI STUDY PLAN
+// GET /api/ai/study-plan
+// ============================================================
+
 const getStudyPlan = async (req, res) => {
+
     try {
 
-        // Find logged-in user
-        const user = await User.findById(req.user.id);
+        const user = await getCurrentUser(req);
 
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
+        const profileData =
+            buildProfileData(user);
 
-        // Check if LeetCode profile is synced
-        if (
-            !user.leetcodeStats ||
-            user.leetcodeStats.totalSolved === 0
-        ) {
-            return res.status(400).json({
-                success: false,
-                message: "Please sync your LeetCode profile first."
-            });
-        }
+        const studyPlan =
+            await generateStudyPlan(profileData);
 
-        // Return cached Study Plan if generated within last 7 days
-        if (
-            user.studyPlan &&
-            user.studyPlan.content &&
-            user.studyPlan.generatedAt
-        ) {
 
-            const daysPassed =
-                (Date.now() - new Date(user.studyPlan.generatedAt).getTime()) /
-                (1000 * 60 * 60 * 24);
-
-            if (daysPassed < 7) {
-                return res.status(200).json({
-                    success: true,
-                    cached: true,
-                    studyPlan: user.studyPlan.content
-                });
-            }
-        }
-
-        // Create profile object
-        const profileData = {
-            username: user.leetcodeUsername,
-            totalSolved: user.leetcodeStats.totalSolved,
-            easySolved: user.leetcodeStats.easySolved,
-            mediumSolved: user.leetcodeStats.mediumSolved,
-            hardSolved: user.leetcodeStats.hardSolved,
-            ranking: user.leetcodeStats.ranking
-        };
-
-        // Generate new Study Plan
-        const studyPlan = await generateStudyPlan(profileData);
-
-        // Save Study Plan in MongoDB
+        // Save latest study plan
         user.studyPlan = {
+
             content: studyPlan,
+
             generatedAt: new Date()
+
         };
 
         await user.save();
 
-        // Return Response
+
         res.status(200).json({
+
             success: true,
-            cached: false,
+
             studyPlan
+
         });
 
     } catch (error) {
 
-        console.log(error);
+        console.error(
+            "Study Plan Controller Error:",
+            error
+        );
 
         res.status(500).json({
+
             success: false,
-            message: error.message
+
+            message:
+                error.message ||
+                "Study Plan Failed"
+
         });
 
     }
+
 };
 
-// Generate Company Roadmap
+
+// ============================================================
+// COMPANY ROADMAP
+// GET /api/ai/company-roadmap/:company
+// ============================================================
+
 const getCompanyRoadmap = async (req, res) => {
+
     try {
 
-        // Find logged-in user
-        const user = await User.findById(req.user.id);
+        const user = await getCurrentUser(req);
 
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
+        const company =
+            req.params.company;
 
-        // Check if LeetCode profile is synced
-        if (
-            !user.leetcodeStats ||
-            user.leetcodeStats.totalSolved === 0
-        ) {
+
+        if (!company || !company.trim()) {
+
             return res.status(400).json({
+
                 success: false,
-                message: "Please sync your LeetCode profile first."
+
+                message:
+                    "Company name is required"
+
             });
+
         }
 
-        // Get company name from URL
-        const { company } = req.params;
 
-        // Validate company
-        if (!company) {
-            return res.status(400).json({
-                success: false,
-                message: "Company name is required"
+        const profileData =
+            buildProfileData(user);
+
+
+        const roadmap =
+            await generateCompanyRoadmap(
+                profileData,
+                company
+            );
+
+
+        // Save roadmap
+        const existingIndex =
+            user.companyRoadmaps.findIndex(
+                item =>
+                    item.company.toLowerCase() ===
+                    company.toLowerCase()
+            );
+
+
+        if (existingIndex !== -1) {
+
+            user.companyRoadmaps[
+                existingIndex
+            ].content = roadmap;
+
+            user.companyRoadmaps[
+                existingIndex
+            ].generatedAt = new Date();
+
+        } else {
+
+            user.companyRoadmaps.push({
+
+                company,
+
+                content: roadmap,
+
+                generatedAt: new Date()
+
             });
+
         }
 
-        // Check if roadmap already exists
-        const existingRoadmap = (user.companyRoadmaps || []).find(
-            (item) =>
-                item.company.toLowerCase() === company.toLowerCase()
-        );
-
-        // Return cached roadmap if generated within last 7 days
-        if (existingRoadmap) {
-
-            const daysPassed =
-                (Date.now() - new Date(existingRoadmap.generatedAt).getTime()) /
-                (1000 * 60 * 60 * 24);
-
-            if (daysPassed < 7) {
-                return res.status(200).json({
-                    success: true,
-                    cached: true,
-                    company,
-                    roadmap: existingRoadmap.content
-                });
-            }
-        }
-
-        // Create profile object
-        const profileData = {
-            username: user.leetcodeUsername,
-            totalSolved: user.leetcodeStats.totalSolved,
-            easySolved: user.leetcodeStats.easySolved,
-            mediumSolved: user.leetcodeStats.mediumSolved,
-            hardSolved: user.leetcodeStats.hardSolved,
-            ranking: user.leetcodeStats.ranking
-        };
-
-        // Generate AI Company Roadmap
-        const roadmap = await generateCompanyRoadmap(
-            profileData,
-            company
-        );
-
-        // Remove old roadmap for same company (if exists)
-        user.companyRoadmaps = (user.companyRoadmaps || []).filter(
-            (item) =>
-                item.company.toLowerCase() !== company.toLowerCase()
-        );
-
-        // Save new roadmap
-        user.companyRoadmaps.push({
-            company,
-            content: roadmap,
-            generatedAt: new Date()
-        });
 
         await user.save();
 
-        // Return response
+
         res.status(200).json({
+
             success: true,
-            cached: false,
+
             company,
+
             roadmap
+
         });
 
     } catch (error) {
 
-        console.log(error);
+        console.error(
+            "Company Roadmap Controller Error:",
+            error
+        );
 
         res.status(500).json({
+
             success: false,
-            message: error.message
+
+            message:
+                error.message ||
+                "Company Roadmap Failed"
+
         });
 
     }
+
 };
 
-// ==============================
-// Generate Interview Questions
-// ==============================
-const getInterviewQuestions = async (req, res) => {
+
+// ============================================================
+// INTERVIEW QUESTIONS
+// GET /api/ai/interview-questions/:company
+// ============================================================
+
+const getInterviewQuestions = async (
+    req,
+    res
+) => {
 
     try {
 
-        const user = await User.findById(req.user.id);
+        const user =
+            await getCurrentUser(req);
 
-        if (!user) {
-            return res.status(404).json({
+        const company =
+            req.params.company;
+
+
+        if (!company || !company.trim()) {
+
+            return res.status(400).json({
+
                 success: false,
-                message: "User not found"
+
+                message:
+                    "Company name is required"
+
             });
+
         }
+
+
+        const profileData =
+            buildProfileData(user);
+
+
+        const questions =
+            await generateInterviewQuestions(
+                profileData,
+                company
+            );
+
+
+        res.status(200).json({
+
+            success: true,
+
+            company,
+
+            questions
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Interview Questions Controller Error:",
+            error
+        );
+
+        res.status(500).json({
+
+            success: false,
+
+            message:
+                error.message ||
+                "Interview Questions Failed"
+
+        });
+
+    }
+
+};
+
+
+// ============================================================
+// RESUME ANALYSIS
+// ============================================================
+
+const getResumeAnalysis = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const resumeText =
+            req.body?.resumeText;
+
 
         if (
-            !user.leetcodeStats ||
-            user.leetcodeStats.totalSolved === 0
+            !resumeText ||
+            !resumeText.trim()
         ) {
+
             return res.status(400).json({
+
                 success: false,
-                message: "Please sync your LeetCode profile first."
+
+                message:
+                    "Resume text is required"
+
             });
+
         }
 
-        const { company } = req.params;
 
-        if (!company) {
-            return res.status(400).json({
-                success: false,
-                message: "Company name is required"
-            });
-        }
+        const analysis =
+            await analyzeResume(
+                resumeText
+            );
 
-        const profileData = {
-            username: user.leetcodeUsername,
-            totalSolved: user.leetcodeStats.totalSolved,
-            easySolved: user.leetcodeStats.easySolved,
-            mediumSolved: user.leetcodeStats.mediumSolved,
-            hardSolved: user.leetcodeStats.hardSolved,
-            ranking: user.leetcodeStats.ranking
-        };
-
-        const questions = await generateInterviewQuestions(
-            profileData,
-            company
-        );
 
         res.status(200).json({
+
             success: true,
-            company,
-            questions
-        });
 
-    } catch (error) {
-
-        console.log(error);
-
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-
-    }
-
-};
-
-// ==============================
-// Explain Code
-// ==============================
-const getExplainCode = async (req, res) => {
-
-    try {
-
-        const { code, language } = req.body;
-
-        if (!code || !language) {
-            return res.status(400).json({
-                success: false,
-                message: "Code and language are required."
-            });
-        }
-
-        // Generate explanation
-        const explanation = await explainCode(code, language);
-
-        // Save AI history
-        await saveAIHistory(
-            req.user.id,
-            "explain",
-            code,
-            explanation,
-            language
-        );
-
-        res.status(200).json({
-            success: true,
-            explanation
-        });
-
-    } catch (error) {
-
-        console.log(error);
-
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-
-    }
-
-};
-
-// ==============================
-// Find Bugs
-// ==============================
-const getBugAnalysis = async (req, res) => {
-
-    try {
-
-        const { code, language } = req.body;
-
-        if (!code || !language) {
-            return res.status(400).json({
-                success: false,
-                message: "Code and language are required."
-            });
-        }
-
-        // Generate bug analysis
-        const analysis = await findBugs(code, language);
-
-        // Save history
-        await saveAIHistory(
-            req.user.id,
-            "bug-analysis",
-            code,
-            analysis,
-            language
-        );
-
-        res.status(200).json({
-            success: true,
             analysis
+
         });
 
     } catch (error) {
 
-        console.log(error);
+        console.error(
+            "Resume Analysis Controller Error:",
+            error
+        );
 
         res.status(500).json({
+
             success: false,
-            message: error.message
+
+            message:
+                error.message ||
+                "Resume Analysis Failed"
+
         });
 
     }
 
 };
 
-// ==============================
-// Optimize Code
-// ==============================
-const getOptimizedCode = async (req, res) => {
+
+// ============================================================
+// EXPLAIN CODE
+// POST /api/ai/explain
+// ============================================================
+
+const getExplainCode = async (
+    req,
+    res
+) => {
 
     try {
 
-        const { code, language } = req.body;
+        const {
+            code,
+            language
+        } = req.body;
 
-        // Validate request
-        if (!code || !language) {
+
+        if (
+            !code ||
+            !code.trim()
+        ) {
+
             return res.status(400).json({
+
                 success: false,
-                message: "Code and language are required."
+
+                message:
+                    "Code is required"
+
             });
+
         }
 
-        // Generate optimized code using AI
-        const optimization = await optimizeCode(code, language);
+
+        const result =
+            await explainCode(
+                code,
+                language || "javascript"
+            );
+
 
         res.status(200).json({
+
             success: true,
-            optimization
+
+            explanation: result
+
         });
 
     } catch (error) {
 
-        console.log(error);
+        console.error(
+            "Explain Code Controller Error:",
+            error
+        );
 
         res.status(500).json({
+
             success: false,
-            message: error.message
+
+            message:
+                error.message ||
+                "Code Explanation Failed"
+
         });
 
     }
 
 };
 
-// ==============================
-// Analyze Time & Space Complexity
-// ==============================
-const getComplexityAnalysis = async (req, res) => {
+
+// ============================================================
+// FIND BUGS
+// POST /api/ai/find-bugs
+// ============================================================
+
+const getBugAnalysis = async (
+    req,
+    res
+) => {
 
     try {
 
-        const { code, language } = req.body;
+        const {
+            code,
+            language
+        } = req.body;
 
-        if (!code || !language) {
+
+        if (
+            !code ||
+            !code.trim()
+        ) {
+
             return res.status(400).json({
+
                 success: false,
-                message: "Code and language are required."
+
+                message:
+                    "Code is required"
+
             });
+
         }
 
-        const analysis = await analyzeComplexity(code, language);
+
+        const result =
+            await findBugs(
+                code,
+                language || "javascript"
+            );
+
 
         res.status(200).json({
+
             success: true,
-            analysis
+
+            analysis: result
+
         });
 
     } catch (error) {
 
-        console.log(error);
+        console.error(
+            "Bug Analysis Controller Error:",
+            error
+        );
 
         res.status(500).json({
+
             success: false,
-            message: error.message
+
+            message:
+                error.message ||
+                "Bug Analysis Failed"
+
         });
 
     }
 
 };
 
-// ==============================
-// Convert Code Between Languages
-// ==============================
-const getConvertedCode = async (req, res) => {
+
+// ============================================================
+// OPTIMIZE CODE
+// POST /api/ai/optimize
+// ============================================================
+
+const getOptimizedCode = async (
+    req,
+    res
+) => {
 
     try {
 
-        const { code, sourceLanguage, targetLanguage } = req.body;
+        const {
+            code,
+            language
+        } = req.body;
 
-        // Validate input
-        if (!code || !sourceLanguage || !targetLanguage) {
+
+        if (
+            !code ||
+            !code.trim()
+        ) {
+
             return res.status(400).json({
+
                 success: false,
-                message: "Code, sourceLanguage and targetLanguage are required."
+
+                message:
+                    "Code is required"
+
             });
+
         }
 
-        // Prevent converting to same language
-        if (sourceLanguage === targetLanguage) {
+
+        const result =
+            await optimizeCode(
+                code,
+                language || "javascript"
+            );
+
+
+        res.status(200).json({
+
+            success: true,
+
+            result
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Optimize Code Controller Error:",
+            error
+        );
+
+        res.status(500).json({
+
+            success: false,
+
+            message:
+                error.message ||
+                "Code Optimization Failed"
+
+        });
+
+    }
+
+};
+
+
+// ============================================================
+// COMPLEXITY ANALYSIS
+// POST /api/ai/complexity
+// ============================================================
+
+const getComplexityAnalysis = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const {
+            code,
+            language
+        } = req.body;
+
+
+        if (
+            !code ||
+            !code.trim()
+        ) {
+
             return res.status(400).json({
+
                 success: false,
-                message: "Source and target languages cannot be the same."
+
+                message:
+                    "Code is required"
+
             });
+
         }
 
-        // Generate converted code
-        const convertedCode = await convertCode(
+
+        const result =
+            await analyzeComplexity(
+                code,
+                language || "javascript"
+            );
+
+
+        res.status(200).json({
+
+            success: true,
+
+            analysis: result
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Complexity Analysis Controller Error:",
+            error
+        );
+
+        res.status(500).json({
+
+            success: false,
+
+            message:
+                error.message ||
+                "Complexity Analysis Failed"
+
+        });
+
+    }
+
+};
+
+
+// ============================================================
+// CODE CONVERSION
+// POST /api/ai/convert
+// ============================================================
+
+const getConvertedCode = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const {
             code,
             sourceLanguage,
             targetLanguage
-        );
+        } = req.body;
+
+
+        if (
+            !code ||
+            !code.trim()
+        ) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message:
+                    "Code is required"
+
+            });
+
+        }
+
+
+        if (
+            !sourceLanguage ||
+            !targetLanguage
+        ) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message:
+                    "Source and target languages are required"
+
+            });
+
+        }
+
+
+        const result =
+            await convertCode(
+                code,
+                sourceLanguage,
+                targetLanguage
+            );
+
 
         res.status(200).json({
+
             success: true,
-            sourceLanguage,
-            targetLanguage,
-            convertedCode
+
+            convertedCode: result
+
         });
 
     } catch (error) {
 
-        console.log(error);
+        console.error(
+            "Code Conversion Controller Error:",
+            error
+        );
 
         res.status(500).json({
+
             success: false,
-            message: error.message
+
+            message:
+                error.message ||
+                "Code Conversion Failed"
+
         });
 
     }
 
 };
 
-// ==============================
-// Generate Code from Problem
-// ==============================
-const getGeneratedCodeFromProblem = async (req, res) => {
+
+// ============================================================
+// GENERATE CODE FROM PROBLEM
+// POST /api/ai/generate-code
+// ============================================================
+
+const getGeneratedCodeFromProblem = async (
+    req,
+    res
+) => {
 
     try {
 
-        const { problem, language } = req.body;
-
-        if (!problem || !language) {
-            return res.status(400).json({
-                success: false,
-                message: "Problem statement and language are required."
-            });
-        }
-
-        const result = await generateCodeFromProblem(
+        const {
             problem,
             language
-        );
+        } = req.body;
 
-        res.status(200).json({
-            success: true,
-            result
-        });
 
-    } catch (error) {
+        if (
+            !problem ||
+            !problem.trim()
+        ) {
 
-        console.log(error);
-
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-
-    }
-
-};
-
-// ==============================
-// AI Coding Assistant Chat
-// ==============================
-const getCodingAssistantReply = async (req, res) => {
-    try {
-
-        const { message } = req.body;
-
-        if (!message) {
             return res.status(400).json({
+
                 success: false,
-                message: "Message is required."
+
+                message:
+                    "Problem statement is required"
+
             });
+
         }
 
-        // Generate AI reply
-        const reply = await codingAssistantChat(message);
 
-        // Save chat history
-        await saveAIHistory(
-            req.user.id,
-            "chat",
-            message,
-            reply
-        );
+        const result =
+            await generateCodeFromProblem(
+                problem,
+                language || "javascript"
+            );
+
 
         res.status(200).json({
+
             success: true,
-            reply
+
+            result
+
         });
 
     } catch (error) {
 
-        console.log(error);
+        console.error(
+            "Code Generation Controller Error:",
+            error
+        );
 
         res.status(500).json({
+
             success: false,
-            message: error.message
+
+            message:
+                error.message ||
+                "Code Generation Failed"
+
         });
 
     }
+
 };
 
-// ==============================
-// Save AI History Helper
-// ==============================
 
-const saveAIHistory = async (
-    userId,
-    feature,
-    input,
-    output,
-    language = ""
+// ============================================================
+// AI CODING ASSISTANT
+// POST /api/ai/chat
+// ============================================================
+
+const getCodingAssistantReply = async (
+    req,
+    res
 ) => {
-    try {
-        await User.findByIdAndUpdate(
-            userId,
-            {
-                $push: {
-                    aiHistory: {
-                        feature,
-                        input,
-                        output,
-                        language,
-                        createdAt: new Date(),
-                    },
-                },
-            },
-            { new: true }
-        );
-    } catch (error) {
-        console.log("AI History Save Error:", error.message);
-    }
-};
-
-// ==============================
-// Get AI History
-// ==============================
-
-const getAIHistory = async (req, res) => {
 
     try {
 
-        const user = await User.findById(req.user.id)
-            .select("aiHistory");
+        const {
+            message
+        } = req.body;
 
-        if (!user) {
-            return res.status(404).json({
+
+        if (
+            !message ||
+            !message.trim()
+        ) {
+
+            return res.status(400).json({
+
                 success: false,
-                message: "User not found"
+
+                message:
+                    "Message is required"
+
             });
+
         }
 
-        const history = [...user.aiHistory].sort(
-            (a, b) =>
-                new Date(b.createdAt) - new Date(a.createdAt)
-        );
+
+        const reply =
+            await codingAssistantChat(
+                message
+            );
+
 
         res.status(200).json({
+
             success: true,
-            total: history.length,
+
+            reply
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            "AI Chat Controller Error:",
+            error
+        );
+
+        res.status(500).json({
+
+            success: false,
+
+            message:
+                error.message ||
+                "AI Chat Failed"
+
+        });
+
+    }
+
+};
+
+
+// ============================================================
+// AI HISTORY
+// ============================================================
+
+// GET /api/ai/history
+
+const getAIHistory = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const user =
+            await getCurrentUser(req);
+
+
+        const history =
+            [...(user.aiHistory || [])]
+                .sort(
+                    (a, b) =>
+                        new Date(b.createdAt) -
+                        new Date(a.createdAt)
+                );
+
+
+        res.status(200).json({
+
+            success: true,
+
             history
+
         });
 
     } catch (error) {
 
-        console.log(error);
+        console.error(
+            "Get AI History Error:",
+            error
+        );
 
         res.status(500).json({
+
             success: false,
-            message: error.message
+
+            message:
+                error.message ||
+                "Failed to fetch AI history"
+
         });
 
     }
 
 };
 
-// ==============================
-// Delete One AI History
-// ==============================
 
-const deleteAIHistoryItem = async (req, res) => {
+// ============================================================
+// DELETE ONE AI HISTORY ITEM
+// DELETE /api/ai/history/:id
+// ============================================================
+
+const deleteAIHistoryItem = async (
+    req,
+    res
+) => {
 
     try {
 
-        const { id } = req.params;
+        const user =
+            await getCurrentUser(req);
 
-        await User.findByIdAndUpdate(
+        const historyId =
+            req.params.id;
 
-            req.user.id,
 
-            {
-                $pull: {
-                    aiHistory: {
-                        _id: id
-                    }
-                }
-            }
+        const historyItem =
+            user.aiHistory.id(
+                historyId
+            );
 
-        );
+
+        if (!historyItem) {
+
+            return res.status(404).json({
+
+                success: false,
+
+                message:
+                    "AI history item not found"
+
+            });
+
+        }
+
+
+        historyItem.deleteOne();
+
+        await user.save();
+
 
         res.status(200).json({
+
             success: true,
-            message: "History deleted successfully."
+
+            message:
+                "AI history item deleted successfully"
+
         });
 
     } catch (error) {
 
-        console.log(error);
+        console.error(
+            "Delete AI History Error:",
+            error
+        );
 
         res.status(500).json({
+
             success: false,
-            message: error.message
+
+            message:
+                error.message ||
+                "Failed to delete AI history item"
+
         });
 
     }
 
 };
 
-// ==============================
-// Clear AI History
-// ==============================
 
-const clearAIHistory = async (req, res) => {
+// ============================================================
+// CLEAR AI HISTORY
+// DELETE /api/ai/history
+// ============================================================
+
+const clearAIHistory = async (
+    req,
+    res
+) => {
 
     try {
 
-        await User.findByIdAndUpdate(
+        const user =
+            await getCurrentUser(req);
 
-            req.user.id,
 
-            {
-                $set: {
-                    aiHistory: []
-                }
-            }
+        user.aiHistory = [];
 
-        );
+        await user.save();
+
 
         res.status(200).json({
+
             success: true,
-            message: "AI History Cleared."
+
+            message:
+                "AI history cleared successfully"
+
         });
 
     } catch (error) {
 
-        console.log(error);
+        console.error(
+            "Clear AI History Error:",
+            error
+        );
 
         res.status(500).json({
+
             success: false,
-            message: error.message
+
+            message:
+                error.message ||
+                "Failed to clear AI history"
+
         });
 
     }
 
 };
+
+
+// ============================================================
+// AI FRIEND COMPARISON
+// ============================================================
+
+const getFriendComparison = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const user =
+            await getCurrentUser(req);
+
+
+        const friendId =
+            req.params.friendId ||
+            req.params.userId;
+
+
+        if (!friendId) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message:
+                    "Friend ID is required"
+
+            });
+
+        }
+
+
+        const friend =
+            await User.findById(friendId);
+
+
+        if (!friend) {
+
+            return res.status(404).json({
+
+                success: false,
+
+                message:
+                    "Friend not found"
+
+            });
+
+        }
+
+
+        const yourProfile = {
+
+            leetcodeUsername:
+                user.leetcodeUsername,
+
+            totalSolved:
+                user.leetcodeStats?.totalSolved || 0,
+
+            easySolved:
+                user.leetcodeStats?.easySolved || 0,
+
+            mediumSolved:
+                user.leetcodeStats?.mediumSolved || 0,
+
+            hardSolved:
+                user.leetcodeStats?.hardSolved || 0,
+
+            ranking:
+                user.leetcodeStats?.ranking || 0
+
+        };
+
+
+        const friendProfile = {
+
+            leetcodeUsername:
+                friend.leetcodeUsername,
+
+            totalSolved:
+                friend.leetcodeStats?.totalSolved || 0,
+
+            easySolved:
+                friend.leetcodeStats?.easySolved || 0,
+
+            mediumSolved:
+                friend.leetcodeStats?.mediumSolved || 0,
+
+            hardSolved:
+                friend.leetcodeStats?.hardSolved || 0,
+
+            ranking:
+                friend.leetcodeStats?.ranking || 0
+
+        };
+
+
+        const comparison =
+            await generateFriendComparison(
+                yourProfile,
+                friendProfile
+            );
+
+
+        res.status(200).json({
+
+            success: true,
+
+            comparison
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            "AI Friend Comparison Error:",
+            error
+        );
+
+        res.status(500).json({
+
+            success: false,
+
+            message:
+                error.message ||
+                "AI Friend Comparison Failed"
+
+        });
+
+    }
+
+};
+
+
+// ============================================================
+// EXPORT CONTROLLERS
+// ============================================================
 
 module.exports = {
+
     getAIAnalysis,
+
     getStudyPlan,
+
     getCompanyRoadmap,
+
     getInterviewQuestions,
-    getBugAnalysis,
+
+    getResumeAnalysis,
+
     getExplainCode,
+
+    getBugAnalysis,
+
     getOptimizedCode,
+
     getComplexityAnalysis,
+
     getConvertedCode,
+
     getGeneratedCodeFromProblem,
+
     getCodingAssistantReply,
+
     getAIHistory,
+
     deleteAIHistoryItem,
-    clearAIHistory
+
+    clearAIHistory,
+
+    getFriendComparison
+
 };

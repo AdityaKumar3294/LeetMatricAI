@@ -7,6 +7,7 @@ import {
   FileText,
   Users,
   Trophy,
+  Brain,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -16,6 +17,11 @@ const Sidebar = () => {
       name: "Dashboard",
       path: "/dashboard",
       icon: <LayoutDashboard size={20} />,
+    },
+    {
+      name: "AI Analysis",
+      path: "/ai-analysis",
+      icon: <Brain size={20} />,
     },
     {
       name: "Profile",

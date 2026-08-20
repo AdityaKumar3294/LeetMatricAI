@@ -2,44 +2,357 @@ const ai = require("../config/gemini");
 const companyData = require("../data/companyData");
 
 // Generate AI Analysis
+// ==============================
+// Generate AI Performance Analysis
+// ==============================
 const generateAIAnalysis = async (profileData) => {
+
     try {
 
         const prompt = `
-You are an expert DSA mentor.
+You are an expert DSA mentor, competitive programming coach,
+technical interviewer, and placement preparation advisor.
 
-Analyze this LeetCode profile.
+Analyze the following LeetMatricAI student performance profile.
 
-Username: ${profileData.username}
-Total Solved: ${profileData.totalSolved}
-Easy: ${profileData.easySolved}
-Medium: ${profileData.mediumSolved}
-Hard: ${profileData.hardSolved}
-Ranking: ${profileData.ranking}
+=========================
+STUDENT PROFILE
+=========================
 
-Give the response in this format:
+Username:
+${profileData.username || "Not available"}
 
-Strengths:
-Weaknesses:
-Study Plan:
-Interview Readiness:
-Motivational Tip:
+=========================
+LEETCODE PERFORMANCE
+=========================
+
+Total Problems Solved:
+${profileData.totalSolved}
+
+Easy Problems:
+${profileData.easySolved}
+
+Medium Problems:
+${profileData.mediumSolved}
+
+Hard Problems:
+${profileData.hardSolved}
+
+LeetCode Ranking:
+${profileData.ranking || 0}
+
+LeetCode Reputation:
+${profileData.reputation || 0}
+
+=========================
+GAMIFICATION
+=========================
+
+Total XP:
+${profileData.xp || 0}
+
+Current Streak:
+${profileData.streak || 0} days
+
+XP from Easy:
+${profileData.xpBreakdown?.easy || 0}
+
+XP from Medium:
+${profileData.xpBreakdown?.medium || 0}
+
+XP from Hard:
+${profileData.xpBreakdown?.hard || 0}
+
+XP from Streak:
+${profileData.xpBreakdown?.streak || 0}
+
+XP from Badges:
+${profileData.xpBreakdown?.badges || 0}
+
+=========================
+ACTIVITY
+=========================
+
+Last Active:
+${profileData.lastActive || "Not available"}
+
+Last LeetCode Sync:
+${profileData.lastSynced || "Not available"}
+
+=========================
+ANALYSIS INSTRUCTIONS
+=========================
+
+Analyze the student's ACTUAL performance.
+
+Do NOT invent statistics.
+
+Do NOT simply repeat the provided numbers.
+
+Determine:
+
+1. Overall DSA performance.
+2. Appropriate performance level.
+3. Difficulty distribution.
+4. Strengths.
+5. Weaknesses.
+6. Practice consistency.
+7. Interview readiness.
+8. Areas requiring improvement.
+9. Personalized recommendations.
+10. Immediate action plan.
+
+Pay special attention to:
+
+- Easy vs Medium vs Hard distribution.
+- Medium problem mastery.
+- Hard problem exposure.
+- Practice consistency.
+- Interview preparation.
+- Overall problem-solving maturity.
+
+=========================
+SCORING
+=========================
+
+Calculate an overallScore from 0 to 100.
+
+The score should consider:
+
+- Total problems solved.
+- Medium problem experience.
+- Hard problem experience.
+- Difficulty balance.
+- Consistency.
+- Interview readiness.
+
+Do not give an artificially high score simply because
+the student has solved many Easy problems.
+
+Also calculate interviewReadiness.score from 0 to 100.
+
+=========================
+IMPORTANT
+=========================
+
+Return ONLY valid JSON.
+
+Do NOT use markdown.
+
+Do NOT wrap the response in:
+
+\`\`\`json
+
+Do NOT add explanations before or after the JSON.
+
+Use exactly this structure:
+
+{
+    "overallScore": 0,
+    "performanceLevel": "Beginner",
+    "overallAssessment": "",
+
+    "difficultyAnalysis": {
+        "easy": "",
+        "medium": "",
+        "hard": ""
+    },
+
+    "strengths": [
+        "",
+        "",
+        ""
+    ],
+
+    "weaknesses": [
+        "",
+        "",
+        ""
+    ],
+
+    "consistency": "",
+
+    "interviewReadiness": {
+        "score": 0,
+        "status": "",
+        "analysis": ""
+    },
+
+    "recommendations": [
+        "",
+        "",
+        "",
+        ""
+    ],
+
+    "actionPlan": [
+        "",
+        "",
+        "",
+        ""
+    ],
+
+    "motivationalTip": ""
+}
+
+=========================
+FIELD REQUIREMENTS
+=========================
+
+overallScore:
+Integer from 0 to 100.
+
+performanceLevel:
+Must be exactly one of:
+
+"Beginner"
+"Intermediate"
+"Advanced"
+
+overallAssessment:
+2-4 sentences.
+
+difficultyAnalysis:
+Explain the student's Easy, Medium and Hard performance.
+
+strengths:
+Exactly 3 meaningful strengths.
+
+weaknesses:
+Exactly 3 meaningful weaknesses.
+
+consistency:
+Analyze streak and practice consistency.
+
+interviewReadiness.score:
+Integer from 0 to 100.
+
+interviewReadiness.status:
+Short human-readable status.
+
+interviewReadiness.analysis:
+2-4 sentences.
+
+recommendations:
+Exactly 4 personalized recommendations.
+
+actionPlan:
+Exactly 4 practical immediate actions.
+
+motivationalTip:
+Short personalized motivational message.
+
+Remember:
+
+Return ONLY valid JSON.
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
-            contents: prompt,
+            model: "gemini-3.6-flash",
+            contents: prompt
         });
 
-        return response.text;
+        let text = response.text.trim();
+
+        // ==========================================
+        // Remove accidental markdown code fences
+        // ==========================================
+
+        text = text
+            .replace(/^```json\s*/i, "")
+            .replace(/^```\s*/i, "")
+            .replace(/\s*```$/i, "")
+            .trim();
+
+        // ==========================================
+        // Parse Gemini JSON response
+        // ==========================================
+
+        const analysis = JSON.parse(text);
+
+        // ==========================================
+        // Basic validation
+        // ==========================================
+
+        if (
+            typeof analysis.overallScore !== "number" ||
+            typeof analysis.performanceLevel !== "string" ||
+            typeof analysis.overallAssessment !== "string"
+        ) {
+            throw new Error("Invalid AI analysis structure");
+        }
+
+        if (
+            !analysis.difficultyAnalysis ||
+            typeof analysis.difficultyAnalysis.easy !== "string" ||
+            typeof analysis.difficultyAnalysis.medium !== "string" ||
+            typeof analysis.difficultyAnalysis.hard !== "string"
+        ) {
+            throw new Error("Invalid difficulty analysis structure");
+        }
+
+        if (
+            !Array.isArray(analysis.strengths) ||
+            !Array.isArray(analysis.weaknesses) ||
+            !Array.isArray(analysis.recommendations) ||
+            !Array.isArray(analysis.actionPlan)
+        ) {
+            throw new Error("Invalid AI analysis arrays");
+        }
+
+        if (
+            !analysis.interviewReadiness ||
+            typeof analysis.interviewReadiness.score !== "number" ||
+            typeof analysis.interviewReadiness.status !== "string" ||
+            typeof analysis.interviewReadiness.analysis !== "string"
+        ) {
+            throw new Error("Invalid interview readiness structure");
+        }
+
+        if (typeof analysis.consistency !== "string") {
+            throw new Error("Invalid consistency analysis");
+        }
+
+        if (typeof analysis.motivationalTip !== "string") {
+            throw new Error("Invalid motivational tip");
+        }
+
+        // ==========================================
+        // Clamp scores between 0 and 100
+        // ==========================================
+
+        analysis.overallScore = Math.min(
+            100,
+            Math.max(0, Math.round(analysis.overallScore))
+        );
+
+        analysis.interviewReadiness.score = Math.min(
+            100,
+            Math.max(0, Math.round(analysis.interviewReadiness.score))
+        );
+
+        return analysis;
 
     } catch (error) {
 
-        console.log(error);
+        console.error("=================================");
+        console.error("GEMINI STRUCTURED AI ANALYSIS ERROR");
+        console.error("=================================");
+
+        console.error("Message:", error?.message);
+        console.error("Status:", error?.status);
+        console.error("Code:", error?.code);
+        console.error("Details:", error?.details);
+        console.error("Full Error:", error);
+
         throw new Error("AI Analysis Failed");
 
     }
 };
+
+
+
+
 
 const generateStudyPlan = async (profileData) => {
 

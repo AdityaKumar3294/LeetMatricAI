@@ -17,7 +17,7 @@ import NotFound from "../pages/NotFound";
 import PublicProfile from "../pages/PublicProfile";
 import FriendComparison from "../pages/FriendComparison";
 import NoteDetails from "../pages/NoteDetails";
-
+import AIAnalysis from "../pages/AIAnalysis";
 
 function AppRoutes() {
 
@@ -47,6 +47,17 @@ function AppRoutes() {
                     element={
                         <ProtectedRoute>
                             <Dashboard />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* AI Performance Analysis */}
+
+                <Route
+                    path="/ai-analysis"
+                    element={
+                        <ProtectedRoute>
+                            <AIAnalysis />
                         </ProtectedRoute>
                     }
                 />

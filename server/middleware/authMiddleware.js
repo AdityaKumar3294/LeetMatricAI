@@ -2,37 +2,26 @@ const jwt = require("jsonwebtoken");
 
 const authMiddleware = async (req, res, next) => {
     try {
-
-        // Get token from request headers
+        console.log(`🟡 BACKEND STEP 4: authMiddleware hit for route -> ${req.originalUrl}`);
+        
         const token = req.header("Authorization");
-
-        // Check if token exists
         if (!token) {
-            return res.status(401).json({
-                success: false,
-                message: "Access denied. No token provided."
+            console.log("🔴 BACKEND ERROR: No token provided");
+            return res.status(401).json({ 
+                success: false, 
+                message: "Access denied." 
             });
         }
 
-        // Remove "Bearer " from token
         const jwtToken = token.replace("Bearer ", "");
-
-        // Verify token
         const decoded = jwt.verify(jwtToken, process.env.JWT_SECRET);
-
-        // Save user id in request object
         req.user = decoded;
-
-        // Move to next middleware/controller
+        
+        console.log(`🟡 BACKEND STEP 4.5: Token verified for user ID: ${decoded.id}, passing to controller...`);
         next();
-
     } catch (error) {
-
-        return res.status(401).json({
-            success: false,
-            message: "Invalid or expired token"
-        });
-
+        console.log("🔴 BACKEND ERROR: Invalid token");
+        return res.status(401).json({ success: false, message: "Invalid token" });
     }
 };
 
