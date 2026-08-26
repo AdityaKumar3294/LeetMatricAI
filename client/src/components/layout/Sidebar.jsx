@@ -9,6 +9,7 @@ import {
   Trophy,
   Brain,
   BookOpen,
+  Building2,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -28,6 +29,11 @@ const Sidebar = () => {
       name: "Study Plan",
       path: "/study-planner",
       icon: <BookOpen size={20} />,
+    },
+    {
+      name: "Company Roadmap",
+      path: "/company-roadmap",
+      icon: <Building2 size={20} />,
     },
     {
       name: "Profile",

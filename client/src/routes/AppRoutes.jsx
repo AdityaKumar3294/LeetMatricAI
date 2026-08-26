@@ -19,6 +19,7 @@ import FriendComparison from "../pages/FriendComparison";
 import NoteDetails from "../pages/NoteDetails";
 import AIAnalysis from "../pages/AIAnalysis";
 import StudyPlanner from '../pages/StudyPlanner';
+import CompanyRoadmap from "../pages/CompanyRoadmap";
 
 function AppRoutes() {
 
@@ -143,6 +144,15 @@ function AppRoutes() {
                     element={
                         <ProtectedRoute>
                             <StudyPlanner />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/company-roadmap"
+                    element={
+                        <ProtectedRoute>
+                            <CompanyRoadmap />
                         </ProtectedRoute>
                     }
                 />
