@@ -18,6 +18,7 @@ import PublicProfile from "../pages/PublicProfile";
 import FriendComparison from "../pages/FriendComparison";
 import NoteDetails from "../pages/NoteDetails";
 import AIAnalysis from "../pages/AIAnalysis";
+import StudyPlanner from '../pages/StudyPlanner';
 
 function AppRoutes() {
 
@@ -133,6 +134,15 @@ function AppRoutes() {
                     element={
                         <ProtectedRoute>
                             <Leaderboard />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/study-planner"
+                    element={
+                        <ProtectedRoute>
+                            <StudyPlanner />
                         </ProtectedRoute>
                     }
                 />

@@ -23,6 +23,8 @@ import XPHistory from "../components/dashboard/XPHistory";
 import { RefreshCw } from "lucide-react";
 import { syncLeetCode } from "../services/leetcodeService";
 
+import StudyPlanWidget from "../components/dashboard/StudyPlanWidget";
+
 function Dashboard() {
 
     const { theme } = useTheme();
@@ -227,6 +229,16 @@ function Dashboard() {
 
                     </div>
 
+                    {/* ============================================================
+                        STUDY PLAN WIDGET
+                    ============================================================ */}
+
+                    <div className="mb-6">
+
+                        <StudyPlanWidget />
+
+                    </div>
+
                     {/* ================= Charts Section ================= */}
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
@@ -235,6 +247,7 @@ function Dashboard() {
                         <WeeklyBarChart dashboard={dashboard} />
 
                     </div>
+
 
                     {/* ================= Recent Activity ================= */}
 

@@ -8,6 +8,7 @@ import {
   Users,
   Trophy,
   Brain,
+  BookOpen,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -22,6 +23,11 @@ const Sidebar = () => {
       name: "AI Analysis",
       path: "/ai-analysis",
       icon: <Brain size={20} />,
+    },
+    {
+      name: "Study Plan",
+      path: "/study-planner",
+      icon: <BookOpen size={20} />,
     },
     {
       name: "Profile",

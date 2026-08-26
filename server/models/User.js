@@ -3,6 +3,10 @@ const validator = require("validator");
 
 const userSchema = new mongoose.Schema(
   {
+    // ============================================================
+    // BASIC USER INFORMATION
+    // ============================================================
+
     name: {
       type: String,
       required: [true, "Name is required"],
@@ -26,6 +30,10 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
     },
 
+    // ============================================================
+    // LEETCODE PROFILE
+    // ============================================================
+
     leetcodeUsername: {
       type: String,
       default: "",
@@ -37,11 +45,19 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
 
+    // ============================================================
+    // USER ROLE
+    // ============================================================
+
     role: {
       type: String,
       enum: ["user", "admin"],
       default: "user",
     },
+
+    // ============================================================
+    // GAMIFICATION
+    // ============================================================
 
     streak: {
       type: Number,
@@ -54,191 +70,281 @@ const userSchema = new mongoose.Schema(
     },
 
     xpBreakdown: {
-        easy: {
-            type: Number,
-            default: 0
-        },
+      easy: {
+        type: Number,
+        default: 0,
+      },
 
-        medium: {
-            type: Number,
-            default: 0
-        },
+      medium: {
+        type: Number,
+        default: 0,
+      },
 
-        hard: {
-            type: Number,
-            default: 0
-        },
+      hard: {
+        type: Number,
+        default: 0,
+      },
 
-        streak: {
-            type: Number,
-            default: 0
-        },
+      streak: {
+        type: Number,
+        default: 0,
+      },
 
-        badges: {
-            type: Number,
-            default: 0
-        }
+      badges: {
+        type: Number,
+        default: 0,
+      },
     },
+
+    // ============================================================
+    // LEETCODE STATISTICS
+    // ============================================================
 
     leetcodeStats: {
       totalSolved: {
-          type: Number,
-          default: 0
+        type: Number,
+        default: 0,
       },
+
       easySolved: {
-          type: Number,
-          default: 0
+        type: Number,
+        default: 0,
       },
+
       mediumSolved: {
-          type: Number,
-          default: 0
+        type: Number,
+        default: 0,
       },
+
       hardSolved: {
-          type: Number,
-          default: 0
+        type: Number,
+        default: 0,
       },
+
       ranking: {
-          type: Number,
-          default: 0
+        type: Number,
+        default: 0,
       },
+
       reputation: {
-          type: Number,
-          default: 0
+        type: Number,
+        default: 0,
       },
+
       avatar: {
-          type: String,
-          default: ""
+        type: String,
+        default: "",
       },
+
       lastSynced: {
-          type: Date
-      }
+        type: Date,
+      },
     },
 
+    // ============================================================
+    // AI PERSONALIZED STUDY PLAN
+    // ============================================================
+
     studyPlan: {
-      content: {
-          type: String,
-          default: ""
-      },
-      generatedAt: {
-          type: Date
-      }
+
+    // Gemini generated study plan
+    content: {
+        type: String,
+        default: "",
     },
+
+    // Date when the current plan was generated
+    generatedAt: {
+        type: Date,
+    },
+
+    // ==========================================================
+    // STUDY PLAN PROGRESS
+    // ==========================================================
+
+    completedDays: [
+        {
+        // Day number of the 30-day plan
+        day: {
+            type: Number,
+            required: true,
+            min: 1,
+            max: 30,
+        },
+
+        // When the student completed this day
+        completedAt: {
+            type: Date,
+            default: Date.now,
+        },
+        },
+    ],
+
+    // ==========================================================
+    // STUDY PLAN MILESTONES
+    // ==========================================================
+
+    milestones: [
+        {
+        // Number of completed days when milestone was achieved
+        day: {
+            type: Number,
+            required: true,
+            min: 1,
+            max: 30,
+        },
+
+        // Milestone title
+        title: {
+            type: String,
+            required: true,
+        },
+
+        // Bonus XP awarded
+        bonusXP: {
+            type: Number,
+            default: 0,
+        },
+
+        // When milestone was achieved
+        achievedAt: {
+            type: Date,
+            default: Date.now,
+        },
+        },
+    ],
+    },
+
+    // ============================================================
+    // COMPANY ROADMAPS
+    // ============================================================
 
     companyRoadmaps: [
       {
-          company: {
-              type: String,
-              required: true
-          },
-          content: {
-              type: String,
-              default: ""
-          },
-          generatedAt: {
-              type: Date,
-              default: Date.now
-          }
-      }
+        company: {
+          type: String,
+          required: true,
+        },
+
+        content: {
+          type: String,
+          default: "",
+        },
+
+        generatedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
     ],
+
+    // ============================================================
+    // RESUME HISTORY
+    // ============================================================
 
     resumeHistory: [
       {
-          filename: {
-              type: String,
-              default: ""
-          },
+        filename: {
+          type: String,
+          default: "",
+        },
 
-          originalname: {
-              type: String,
-              default: ""
-          },
+        originalname: {
+          type: String,
+          default: "",
+        },
 
-          path: {
-              type: String,
-              default: ""
-          },
+        path: {
+          type: String,
+          default: "",
+        },
 
-          extractedText: {
-              type: String,
-              default: ""
-          },
+        extractedText: {
+          type: String,
+          default: "",
+        },
 
-          analysis: {
-              type: String,
-              default: ""
-          },
+        analysis: {
+          type: String,
+          default: "",
+        },
 
-          uploadedAt: {
-              type: Date,
-              default: Date.now
-          }
-      }
+        uploadedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
     ],
 
-    // ==============================
-    // AI Activity History
-    // ==============================
+    // ============================================================
+    // AI ACTIVITY HISTORY
+    // ============================================================
 
     aiHistory: [
-        {
-            feature: {
-                type: String,
-                enum: [
-                    "chat",
-                    "resume",
-                    "study-plan",
-                    "roadmap",
-                    "interview",
-                    "explain",
-                    "bug",
-                    "optimize",
-                    "complexity",
-                    "convert",
-                    "generate-code"
-                ],
-                required: true
-            },
+      {
+        feature: {
+          type: String,
 
-            input: {
-                type: String,
-                default: ""
-            },
+          enum: [
+            "chat",
+            "resume",
+            "study-plan",
+            "roadmap",
+            "interview",
+            "explain",
+            "bug",
+            "optimize",
+            "complexity",
+            "convert",
+            "generate-code",
+          ],
 
-            output: {
-                type: String,
-                default: ""
-            },
+          required: true,
+        },
 
-            language: {
-                type: String,
-                default: ""
-            },
+        input: {
+          type: String,
+          default: "",
+        },
 
-            createdAt: {
-                type: Date,
-                default: Date.now
-            }
-        }
+        output: {
+          type: String,
+          default: "",
+        },
+
+        language: {
+          type: String,
+          default: "",
+        },
+
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
     ],
+
+    // ============================================================
+    // FRIENDS
+    // ============================================================
 
     friends: [
-        {
-            type: require("mongoose").Schema.Types.ObjectId,
-            ref: "User"
-        }
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
     ],
-    
-    streak: {
-        type: Number,
-        default: 0
-    },
+
+    // ============================================================
+    // ACTIVITY TRACKING
+    // ============================================================
 
     lastActive: {
-        type: Date,
-        default: null
-    }
-
+      type: Date,
+      default: null,
+    },
   },
+
   {
     timestamps: true,
   }

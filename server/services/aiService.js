@@ -1,14 +1,11 @@
 const ai = require("../config/gemini");
 const companyData = require("../data/companyData");
 
-// Generate AI Analysis
 // ==============================
 // Generate AI Performance Analysis
 // ==============================
 const generateAIAnalysis = async (profileData) => {
-
     try {
-
         const prompt = `
 You are an expert DSA mentor, competitive programming coach,
 technical interviewer, and placement preparation advisor.
@@ -248,8 +245,11 @@ Return ONLY valid JSON.
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-3.6-flash",
-            contents: prompt
+            model: "gemini-3.6-flash", 
+            contents: prompt,
+            generationConfig: {
+                responseMimeType: "application/json", 
+            }
         });
 
         let text = response.text.trim();
@@ -257,7 +257,6 @@ Return ONLY valid JSON.
         // ==========================================
         // Remove accidental markdown code fences
         // ==========================================
-
         text = text
             .replace(/^```json\s*/i, "")
             .replace(/^```\s*/i, "")
@@ -267,13 +266,11 @@ Return ONLY valid JSON.
         // ==========================================
         // Parse Gemini JSON response
         // ==========================================
-
         const analysis = JSON.parse(text);
 
         // ==========================================
         // Basic validation
         // ==========================================
-
         if (
             typeof analysis.overallScore !== "number" ||
             typeof analysis.performanceLevel !== "string" ||
@@ -320,7 +317,6 @@ Return ONLY valid JSON.
         // ==========================================
         // Clamp scores between 0 and 100
         // ==========================================
-
         analysis.overallScore = Math.min(
             100,
             Math.max(0, Math.round(analysis.overallScore))
@@ -334,95 +330,335 @@ Return ONLY valid JSON.
         return analysis;
 
     } catch (error) {
-
         console.error("=================================");
         console.error("GEMINI STRUCTURED AI ANALYSIS ERROR");
         console.error("=================================");
-
         console.error("Message:", error?.message);
         console.error("Status:", error?.status);
         console.error("Code:", error?.code);
         console.error("Details:", error?.details);
         console.error("Full Error:", error);
-
         throw new Error("AI Analysis Failed");
-
     }
 };
 
-
-
-
-
+// ==============================
+// Generate Personalized Study Plan
+// ==============================
 const generateStudyPlan = async (profileData) => {
-
     try {
-
         const prompt = `
-You are an expert DSA mentor.
+You are an expert DSA mentor, competitive programming coach,
+technical interviewer, and placement preparation advisor.
 
-Create a personalized 30-day LeetCode study plan.
+Your task is to create a highly personalized 30-day LeetCode
+and DSA study plan for the student.
 
-Student Profile:
+Do NOT create a generic roadmap.
 
-Username: ${profileData.username}
+The plan MUST be based on the student's actual performance data.
 
-Total Solved: ${profileData.totalSolved}
+==================================================
+STUDENT PROFILE
+==================================================
 
-Easy: ${profileData.easySolved}
+Username:
+${profileData.username || "Not available"}
 
-Medium: ${profileData.mediumSolved}
+Total Problems Solved:
+${profileData.totalSolved || 0}
 
-Hard: ${profileData.hardSolved}
+Easy Problems:
+${profileData.easySolved || 0}
 
-Ranking: ${profileData.ranking}
+Medium Problems:
+${profileData.mediumSolved || 0}
 
-Return the response in this format:
+Hard Problems:
+${profileData.hardSolved || 0}
 
-📅 Weekly Plan
+LeetCode Ranking:
+${profileData.ranking || 0}
+
+LeetCode Reputation:
+${profileData.reputation || 0}
+
+==================================================
+GAMIFICATION & CONSISTENCY
+==================================================
+
+Total XP:
+${profileData.xp || 0}
+
+Current Streak:
+${profileData.streak || 0} days
+
+XP from Easy:
+${profileData.xpBreakdown?.easy || 0}
+
+XP from Medium:
+${profileData.xpBreakdown?.medium || 0}
+
+XP from Hard:
+${profileData.xpBreakdown?.hard || 0}
+
+XP from Streak:
+${profileData.xpBreakdown?.streak || 0}
+
+XP from Badges:
+${profileData.xpBreakdown?.badges || 0}
+
+Last Active:
+${profileData.lastActive || "Not available"}
+
+Last LeetCode Sync:
+${profileData.lastSynced || "Not available"}
+
+==================================================
+YOUR ANALYSIS TASK
+==================================================
+
+First understand the student's current level from the
+actual numbers.
+
+Pay special attention to:
+
+1. Total problem-solving experience.
+2. Easy / Medium / Hard distribution.
+3. Medium problem mastery.
+4. Hard problem exposure.
+5. Whether the student is over-dependent on Easy problems.
+6. Practice consistency and streak.
+7. Interview preparation readiness.
+8. Areas that should receive the most attention during
+   the next 30 days.
+
+Do NOT invent statistics.
+
+Do NOT claim that the student is weak in a topic unless
+there is enough evidence.
+
+Do NOT assume that every student has the same weaknesses.
+
+==================================================
+PLAN REQUIREMENTS
+==================================================
+
+Create a practical 30-day plan.
+
+The plan should progressively increase difficulty.
+
+The plan should generally follow this progression:
 
 Week 1:
-...
+Foundation + identify and strengthen weak areas.
 
 Week 2:
-...
+Medium problem mastery and pattern recognition.
 
 Week 3:
-...
+Advanced DSA + selected Hard problems where appropriate.
 
 Week 4:
-...
+Interview-oriented problem solving, revision,
+mock practice, and weak-area reinforcement.
 
-Daily Goal:
+However, you MUST modify this progression according to
+the student's actual profile.
 
-Revision Strategy:
+For example:
 
-Interview Readiness:
+- If Easy problems dominate, increase Medium practice.
+- If Medium performance is strong, introduce more Hard problems.
+- If Hard exposure is very low, introduce Hard problems gradually.
+- If total solved count is low, focus more on fundamentals.
+- If the student appears experienced, prioritize interview patterns,
+  timed practice, and advanced problems.
+- If the streak is low, include consistency-building goals.
 
-Motivational Tip:
+==================================================
+DAILY PLAN
+==================================================
+
+Create a day-by-day plan for all 30 days.
+
+Every day must contain:
+
+- Day number
+- Main topic/pattern
+- Learning objective
+- Recommended problem count
+- Recommended difficulty
+- Practice activity
+- Short daily goal
+
+Avoid unrealistic workloads.
+
+The student should be able to complete the plan alongside
+college/classes and normal responsibilities.
+
+Include lighter revision/rest days where appropriate.
+
+==================================================
+IMPORTANT DSA PATTERNS
+==================================================
+
+Select topics based on the student's current level.
+
+Possible topics include:
+
+Arrays
+Strings
+Hashing
+Two Pointers
+Sliding Window
+Binary Search
+Stack
+Queue
+Linked List
+Recursion
+Backtracking
+Trees
+Binary Search Tree
+Heap / Priority Queue
+Greedy
+Graphs
+BFS
+DFS
+Dynamic Programming
+Intervals
+Bit Manipulation
+Prefix Sum
+Monotonic Stack
+
+Do not force all topics into the plan.
+
+Prioritize the most useful topics for the student's level.
+
+==================================================
+INTERVIEW PREPARATION
+==================================================
+
+Include interview-oriented preparation.
+
+Cover:
+
+- Pattern recognition
+- Timed problem solving
+- Explaining solutions
+- Complexity analysis
+- Mock interviews
+- Revision of previously solved problems
+- Medium/Hard interview problems where appropriate
+
+==================================================
+OUTPUT FORMAT
+==================================================
+
+Return ONLY markdown.
+
+Do NOT return JSON.
+
+Do NOT wrap the entire response inside a markdown code block.
+
+Use exactly this general structure:
+
+# 🎯 Personalized 30-Day DSA Study Plan
+
+## 📊 Current Assessment
+
+Explain the student's current level and the most important
+areas of focus.
+
+## 🎯 30-Day Objectives
+
+List 3-5 measurable goals for the next 30 days.
+
+## 📅 Week 1 — Foundation & Weak Areas
+
+### Day 1
+**Topic:** ...
+**Objective:** ...
+**Problems:** ...
+**Difficulty:** ...
+**Practice:** ...
+**Daily Goal:** ...
+
+Continue through Day 7.
+
+## 📅 Week 2 — Medium Problem Mastery
+
+Continue through Day 14.
+
+## 📅 Week 3 — Advanced DSA
+
+Continue through Day 21.
+
+## 📅 Week 4 — Interview Preparation & Revision
+
+Continue through Day 30.
+
+## 🔄 Revision Strategy
+
+Explain how the student should revise.
+
+## ⏱️ Daily Study Routine
+
+Give a realistic daily study structure.
+
+## 💼 Interview Readiness
+
+Explain how this 30-day plan improves interview readiness.
+
+## 🎯 Expected Outcome
+
+Explain what the student should realistically achieve
+after completing the 30 days.
+
+## 🔥 Final Motivation
+
+Give a short personalized motivational message.
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not invent LeetCode statistics.
+- Do not repeat the student's statistics unnecessarily.
+- Do not give the same plan to every student.
+- Personalization is mandatory.
+- Keep the plan practical.
+- Prefer quality over excessive problem counts.
+- Encourage solving problems independently before looking
+  at solutions.
+- Encourage revisiting failed and previously solved problems.
+- Include time complexity analysis as part of practice.
+- Focus on interview-relevant DSA patterns.
+- Never guarantee interview selection or placement.
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
+            model: "gemini-3.6-flash",
             contents: prompt,
         });
 
-        return response.text;
+        const studyPlan = response.text?.trim();
+
+        if (!studyPlan) {
+            throw new Error("Gemini returned an empty study plan");
+        }
+
+        return studyPlan;
 
     } catch (error) {
-
-        console.log(error);
+        console.error("Gemini Study Plan Error:", error);
         throw new Error("Study Plan Failed");
-
     }
-
 };
 
 // Generate Company Roadmap
 const generateCompanyRoadmap = async (profileData, company) => {
-
     try {
-
         // Get company information
         const info = companyData[company] || {
             difficulty: "★★★★☆",
@@ -441,15 +677,11 @@ COMPANY INFORMATION
 =========================
 
 Company: ${company}
-
 Difficulty: ${info.difficulty}
-
 Interview Style:
 ${info.interviewStyle}
-
 Focus Topics:
 ${info.focus.join(", ")}
-
 Recommended Problems:
 ${info.recommendedProblems.join(", ")}
 
@@ -458,15 +690,10 @@ STUDENT PROFILE
 =========================
 
 Username: ${profileData.username}
-
 Total Solved: ${profileData.totalSolved}
-
 Easy: ${profileData.easySolved}
-
 Medium: ${profileData.mediumSolved}
-
 Hard: ${profileData.hardSolved}
-
 Ranking: ${profileData.ranking}
 
 =========================
@@ -474,77 +701,53 @@ INSTRUCTIONS
 =========================
 
 Use the company information above.
-
 Personalize everything.
-
 Mention why those topics are important specifically for ${company}.
-
 Recommend weekly goals.
-
 Suggest suitable difficulty distribution.
-
 Suggest interview preparation strategy.
-
 Return ONLY markdown.
 
 Use this structure:
 
 🏢 Company
-
 🎯 Current Level
-
 📚 Topics to Master
-
 📅 Week 1
-
 📅 Week 2
-
 📅 Week 3
-
 📅 Week 4
-
 🔥 Important Patterns
-
 📌 Must Solve Problems
-
 📊 Difficulty Distribution
-
 💡 Interview Tips
-
 🚀 Motivation
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
+            model: "gemini-3.6-flash",
             contents: prompt,
         });
 
         return response.text;
-
     } catch (error) {
-
         console.log("Gemini Error:");
         console.log(error);
-
         throw new Error("Company Roadmap Failed");
     }
-
 };
 
 // ==============================
 // Generate Interview Questions
 // ==============================
 const generateInterviewQuestions = async (profileData, company) => {
-
     try {
-
         const prompt = `
 You are an ex-Google Software Engineer and DSA interviewer.
 
 Generate the TOP 20 REAL LeetCode interview questions that are frequently asked in ${company} interviews.
 
 Student Profile:
-
 Username: ${profileData.username}
 Solved: ${profileData.totalSolved}
 Easy: ${profileData.easySolved}
@@ -553,7 +756,6 @@ Hard: ${profileData.hardSolved}
 Ranking: ${profileData.ranking}
 
 Rules:
-
 - Only use REAL LeetCode problems.
 - Mention the official LeetCode problem title.
 - Mention the LeetCode problem number.
@@ -605,29 +807,23 @@ Continue until Question 20.
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
+            model: "gemini-3.6-flash",
             contents: prompt,
         });
 
         return response.text;
-
     } catch (error) {
-
         console.log("Gemini Error:");
         console.log(error);
-
         throw new Error("Interview Questions Failed");
     }
-
 };
 
 // ==============================
 // Analyze Resume
 // ==============================
 const analyzeResume = async (resumeText) => {
-
     try {
-
         const prompt = `
 You are a Senior Technical Recruiter, ATS Expert, and Software Engineering Hiring Manager.
 
@@ -647,82 +843,63 @@ Return exactly in this format:
 Score: xx/100
 
 # Strengths
-
 - ...
 - ...
 
 # Weaknesses
-
 - ...
 - ...
 
 # Missing Skills
-
 - ...
 
 # Grammar Issues
-
 - ...
 
 # Formatting Suggestions
-
 - ...
 
 # Project Review
-
 - ...
 
 # Resume Improvement Tips
-
 - ...
 
 # Company Readiness
-
 Google:
 ...
-
 Amazon:
 ...
-
 Microsoft:
 ...
 
 # Final Verdict
-
 ...
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
+            model: "gemini-3.6-flash",
             contents: prompt,
         });
 
         return response.text;
-
     } catch (error) {
-
         console.log(error);
-
         throw new Error("Resume Analysis Failed");
-
     }
-
 };
 
 // ==============================
 // Explain Code
 // ==============================
 const explainCode = async (code, language) => {
-
     try {
-
         const prompt = `
 You are a Senior Software Engineer and Programming Mentor.
 
 Explain the following ${language} code in a beginner-friendly yet professional way.
 
 Rules:
-
 - Explain the overall purpose of the code.
 - Explain each important block step-by-step.
 - Explain important algorithms used.
@@ -736,51 +913,39 @@ Rules:
 Format:
 
 # Code Summary
-
 ...
 
 # Step-by-Step Explanation
-
 1.
 2.
 3.
 
 # Algorithm Used
-
 ...
 
 # Data Structures Used
-
 ...
 
 # Time Complexity
-
 ...
 
 # Space Complexity
-
 ...
 
 # Possible Improvements
-
 ...
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
+            model: "gemini-3.6-flash",
             contents: `${prompt}\n\n${code}`,
         });
 
         return response.text;
-
     } catch (error) {
-
         console.log(error);
-
         throw new Error("Code Explanation Failed");
-
     }
-
 };
 
 // ==============================
@@ -788,14 +953,12 @@ Format:
 // ==============================
 const findBugs = async (code, language) => {
     try {
-
         const prompt = `
 You are a Senior Software Engineer and Code Reviewer.
 
 Analyze the following ${language} code.
 
 Find all possible:
-
 - Syntax Errors
 - Logical Errors
 - Runtime Errors
@@ -811,29 +974,24 @@ Format:
 
 🐞 Bug 1
 Description:
-
 Reason:
-
 Possible Fix:
 
 -------------------
 
 🐞 Bug 2
-
 ...
 
 At the end write:
-
 ⭐ Overall Code Quality (out of 10)
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
+            model: "gemini-3.6-flash",
             contents: `${prompt}\n\n${code}`
         });
 
         return response.text;
-
     } catch (error) {
         console.log(error);
         throw new Error("Bug Analysis Failed");
@@ -844,16 +1002,13 @@ At the end write:
 // Optimize Code
 // ==============================
 const optimizeCode = async (code, language) => {
-
     try {
-
         const prompt = `
 You are a Senior Software Engineer at Google.
 
 Analyze the following ${language} code.
 
 Your task:
-
 1. Identify inefficient code.
 2. Suggest performance improvements.
 3. Improve readability.
@@ -883,47 +1038,37 @@ Format:
 
 Original Time:
 ...
-
 Optimized Time:
 ...
-
 Original Space:
 ...
-
 Optimized Space:
 ...
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
+            model: "gemini-3.6-flash",
             contents: `${prompt}\n\n${code}`
         });
 
         return response.text;
-
     } catch (error) {
-
         console.log(error);
         throw new Error("Code Optimization Failed");
-
     }
-
 };
 
 // ==============================
 // Analyze Time & Space Complexity
 // ==============================
 const analyzeComplexity = async (code, language) => {
-
     try {
-
         const prompt = `
 You are an expert Data Structures & Algorithms mentor.
 
 Analyze the following ${language} code.
 
 Your tasks:
-
 1. Explain what the algorithm does.
 2. Determine the Time Complexity.
 3. Explain WHY the time complexity is that value.
@@ -938,69 +1083,53 @@ Return ONLY markdown.
 Format exactly like this:
 
 # Algorithm Summary
-
 ...
 
 # Time Complexity
-
 O(...)
-
 Reason:
 ...
 
 # Space Complexity
-
 O(...)
-
 Reason:
 ...
 
 # Dominant Operations
-
 - ...
 
 # Can It Be Optimized?
-
 Yes/No
-
 Explanation:
 ...
 
 # Interview Tip
-
 ...
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
+            model: "gemini-3.6-flash",
             contents: `${prompt}\n\n${code}`,
         });
 
         return response.text;
-
     } catch (error) {
-
         console.log(error);
         throw new Error("Complexity Analysis Failed");
-
     }
-
 };
 
 // ==============================
 // Convert Code Between Languages
 // ==============================
 const convertCode = async (code, sourceLanguage, targetLanguage) => {
-
     try {
-
         const prompt = `
 You are a Senior Software Engineer.
 
 Convert the following code from ${sourceLanguage} to ${targetLanguage}.
 
 Rules:
-
 - Preserve the original logic.
 - Do NOT change the algorithm.
 - Use best coding practices.
@@ -1011,29 +1140,23 @@ Rules:
 - Do NOT wrap the code in markdown.
 
 Code:
-
 ${code}
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
+            model: "gemini-3.6-flash",
             contents: prompt
         });
 
         return response.text;
-
     } catch (error) {
-
         console.log(error);
         throw new Error("Code Conversion Failed");
-
     }
-
 };
 
 const generateCodeFromProblem = async (problem, language) => {
     try {
-
         const prompt = `
 You are a Senior Software Engineer at Google.
 
@@ -1043,15 +1166,11 @@ Problem Statement:
 ${problem}
 
 IMPORTANT:
-
 Return ONLY valid JSON.
-
 Do NOT return markdown.
-
 Do NOT wrap inside \`\`\`.
 
 JSON format:
-
 {
     "approach":"",
     "algorithm":"",
@@ -1062,7 +1181,7 @@ JSON format:
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
+            model: "gemini-3.6-flash",
             contents: prompt
         });
 
@@ -1074,12 +1193,9 @@ JSON format:
                    .trim();
 
         return JSON.parse(text);
-
     } catch (error) {
-
         console.log(error);
         throw new Error("Code Generation Failed");
-
     }
 };
 
@@ -1088,12 +1204,10 @@ JSON format:
 // ==============================
 const codingAssistantChat = async (message) => {
     try {
-
         const prompt = `
 You are an Expert Software Engineer, DSA Mentor, Competitive Programmer, and Technical Interviewer.
 
 Your job is to help students with:
-
 - Data Structures
 - Algorithms
 - Competitive Programming
@@ -1112,11 +1226,9 @@ Your job is to help students with:
 - Interview Preparation
 
 Student Question:
-
 ${message}
 
 Rules:
-
 - Answer clearly.
 - Give examples when useful.
 - Use markdown.
@@ -1126,42 +1238,31 @@ Rules:
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
+            model: "gemini-3.6-flash",
             contents: prompt,
         });
 
         return response.text;
-
     } catch (error) {
-
         console.log(error);
         throw new Error("AI Chat Failed");
-
     }
 };
 
 // ==============================
 // AI Friend Comparison
 // ==============================
-
-// ==============================
-// AI Friend Comparison
-// ==============================
-
 const generateFriendComparison = async (
     yourProfile,
     friendProfile
 ) => {
-
     try {
-
         const prompt = `
 You are an expert DSA mentor.
 
 Compare these two LeetCode profiles.
 
 PROFILE 1
-
 Username: ${yourProfile.leetcodeUsername}
 Total Solved: ${yourProfile.totalSolved}
 Easy: ${yourProfile.easySolved}
@@ -1172,7 +1273,6 @@ Ranking: ${yourProfile.ranking}
 ----------------------------
 
 PROFILE 2
-
 Username: ${friendProfile.leetcodeUsername}
 Total Solved: ${friendProfile.totalSolved}
 Easy: ${friendProfile.easySolved}
@@ -1203,39 +1303,23 @@ Format:
 # Final Verdict
 `;
 
-
         // ==========================================
         // Retry Gemini on temporary 503 errors
         // ==========================================
-
         const maxRetries = 3;
-
         let lastError;
 
-
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
-
             try {
+                console.log(`Gemini Friend Comparison Attempt ${attempt}/${maxRetries}`);
 
-                console.log(
-                    `Gemini Friend Comparison Attempt ${attempt}/${maxRetries}`
-                );
-
-                const response =
-                    await ai.models.generateContent({
-
-                        model: "gemini-3.6-flash",
-
-                        contents: prompt
-
-                    });
+                const response = await ai.models.generateContent({
+                    model: "gemini-3.6-flash", 
+                    contents: prompt
+                });
 
                 return response.text;
-
-            }
-
-            catch (error) {
-
+            } catch (error) {
                 lastError = error;
 
                 const status =
@@ -1243,11 +1327,7 @@ Format:
                     error?.response?.status ||
                     error?.code;
 
-                console.log(
-                    `Gemini attempt ${attempt} failed:`,
-                    error.message
-                );
-
+                console.log(`Gemini attempt ${attempt} failed:`, error.message);
 
                 // Retry only transient errors
                 if (
@@ -1255,50 +1335,24 @@ Format:
                     status !== 429 &&
                     status !== 500
                 ) {
-
                     throw error;
-
                 }
-
 
                 if (attempt < maxRetries) {
+                    const delay = Math.pow(2, attempt) * 1000;
+                    console.log(`Retrying Gemini in ${delay / 1000}s...`);
 
-                    const delay =
-                        Math.pow(2, attempt) * 1000;
-
-                    console.log(
-                        `Retrying Gemini in ${delay / 1000}s...`
-                    );
-
-                    await new Promise(
-                        (resolve) =>
-                            setTimeout(resolve, delay)
-                    );
-
+                    await new Promise((resolve) => setTimeout(resolve, delay));
                 }
-
             }
-
         }
-
 
         throw lastError;
 
+    } catch (error) {
+        console.log("Gemini Friend Comparison Error:", error);
+        throw new Error("AI Friend Comparison temporarily unavailable. Please try again.");
     }
-
-    catch (error) {
-
-        console.log(
-            "Gemini Friend Comparison Error:",
-            error
-        );
-
-        throw new Error(
-            "AI Friend Comparison temporarily unavailable. Please try again."
-        );
-
-    }
-
 };
 
 module.exports = {
