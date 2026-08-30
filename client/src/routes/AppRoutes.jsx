@@ -20,6 +20,7 @@ import NoteDetails from "../pages/NoteDetails";
 import AIAnalysis from "../pages/AIAnalysis";
 import StudyPlanner from '../pages/StudyPlanner';
 import CompanyRoadmap from "../pages/CompanyRoadmap";
+import AICodingAssistant from "../pages/AICodingAssistant";
 
 function AppRoutes() {
 
@@ -53,6 +54,17 @@ function AppRoutes() {
                     }
                 />
 
+                 {/* Profile */}
+
+                <Route
+                    path="/profile"
+                    element={
+                        <ProtectedRoute>
+                            <Profile />
+                        </ProtectedRoute>
+                    }
+                />
+
                 {/* AI Performance Analysis */}
 
                 <Route
@@ -64,18 +76,16 @@ function AppRoutes() {
                     }
                 />
 
-
-                {/* Profile */}
+                {/* AI CODING ASSISTANT */}
 
                 <Route
-                    path="/profile"
+                    path="/ai-assistant"
                     element={
                         <ProtectedRoute>
-                            <Profile />
+                            <AICodingAssistant />
                         </ProtectedRoute>
                     }
                 />
-
 
                 {/* Notes */}
 

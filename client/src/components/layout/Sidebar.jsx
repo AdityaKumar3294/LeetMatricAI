@@ -10,6 +10,7 @@ import {
   Brain,
   BookOpen,
   Building2,
+  Bot,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -21,9 +22,20 @@ const Sidebar = () => {
       icon: <LayoutDashboard size={20} />,
     },
     {
+      name: "Profile",
+      path: "/profile",
+      icon: <User size={20} />,
+    },
+    {
       name: "AI Analysis",
       path: "/ai-analysis",
       icon: <Brain size={20} />,
+    },
+
+    {
+      name: "AI Assistant",
+      path: "/ai-assistant",
+      icon: <Bot size={20} />,
     },
     {
       name: "Study Plan",
@@ -34,11 +46,6 @@ const Sidebar = () => {
       name: "Company Roadmap",
       path: "/company-roadmap",
       icon: <Building2 size={20} />,
-    },
-    {
-      name: "Profile",
-      path: "/profile",
-      icon: <User size={20} />,
     },
     {
       name: "Notes",

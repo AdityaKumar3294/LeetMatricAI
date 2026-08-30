@@ -499,11 +499,69 @@ export const analyzeComplexity = async (
     }
 };
 
+// ==========================================
+// PYTHON CODE FORMATTER
+// ==========================================
+const formatPythonCode = (code) => {
+    const lines = code.split("\n");
+
+    let indentLevel = 0;
+    const formatted = [];
+
+    for (let rawLine of lines) {
+        let line = rawLine.trim();
+
+        // Preserve empty lines
+        if (!line) {
+            formatted.push("");
+            continue;
+        }
+
+        // ------------------------------------------
+        // Decrease indentation before these lines
+        // ------------------------------------------
+        if (
+            line.startsWith("elif ") ||
+            line.startsWith("else:") ||
+            line.startsWith("except") ||
+            line.startsWith("finally:")
+        ) {
+            indentLevel = Math.max(0, indentLevel - 1);
+        }
+
+        // ------------------------------------------
+        // Handle closing indentation
+        // ------------------------------------------
+        if (
+            line.startsWith("return ") ||
+            line.startsWith("raise ") ||
+            line.startsWith("break") ||
+            line.startsWith("continue")
+        ) {
+            // Keep current indentation
+        }
+
+        // ------------------------------------------
+        // Add indentation
+        // ------------------------------------------
+        formatted.push(
+            "    ".repeat(indentLevel) + line
+        );
+
+        // ------------------------------------------
+        // Increase indentation after blocks
+        // ------------------------------------------
+        if (line.endsWith(":")) {
+            indentLevel++;
+        }
+    }
+
+    return formatted.join("\n").trim();
+};
+
 
 // ==========================================
 // CONVERT CODE
-// ==========================================
-// POST /api/ai/convert
 // ==========================================
 export const convertCode = async (
     code,
@@ -524,7 +582,62 @@ export const convertCode = async (
             }
         );
 
-        return response.data;
+        console.log(
+            "🟢 FRONTEND: Conversion backend result:",
+            response.data
+        );
+
+        const data = response.data;
+
+        let convertedCode =
+            typeof data === "string"
+                ? data
+                : data?.convertedCode ??
+                  data?.response ??
+                  data?.output ??
+                  data?.result ??
+                  data?.data?.convertedCode ??
+                  "";
+
+        if (
+            typeof convertedCode !== "string" ||
+            !convertedCode.trim()
+        ) {
+            throw new Error(
+                "Backend returned an empty converted code response."
+            );
+        }
+
+        // ==========================================
+        // CLEAN GEMINI MARKDOWN
+        // ==========================================
+
+        convertedCode = convertedCode
+            .replace(/^```[a-zA-Z0-9_+-]*\s*/i, "")
+            .replace(/\s*```$/i, "")
+            .trim();
+
+        // ==========================================
+        // PYTHON INDENTATION NORMALIZATION
+        // ==========================================
+
+        if (
+            targetLanguage.toLowerCase() === "python" ||
+            targetLanguage.toLowerCase() === "py"
+        ) {
+            convertedCode = formatPythonCode(convertedCode);
+        }
+
+        console.log(
+            "🟢 CODE CONVERSION: Successfully extracted converted code."
+        );
+
+        return {
+            success: true,
+            convertedCode,
+            response: convertedCode,
+            output: convertedCode
+        };
 
     } catch (error) {
         console.error(
@@ -535,12 +648,13 @@ export const convertCode = async (
         throw (
             error.response?.data || {
                 success: false,
-                message: "Failed to convert code."
+                message:
+                    error.message ||
+                    "Failed to convert code."
             }
         );
     }
 };
-
 
 // ==========================================
 // GENERATE CODE FROM PROBLEM
@@ -587,22 +701,79 @@ export const generateCodeFromProblem = async (
 // ==========================================
 // POST /api/ai/chat
 // ==========================================
-export const codingAssistantChat = async (
-    message
-) => {
+
+export const codingAssistantChat = async (message) => {
     try {
         console.log(
             "🔵 FRONTEND: Sending message to AI Coding Assistant..."
         );
 
-        const response = await API.post(
-            "/ai/chat",
-            {
-                message
-            }
+        const response = await API.post("/ai/chat", {
+            message,
+        });
+
+        console.log(
+            "🟢 FRONTEND: Received backend result:",
+            response.data
         );
 
-        return response.data;
+        const data = response.data;
+
+        // ==========================================
+        // Normalize backend response
+        // ==========================================
+
+        const aiResponse =
+            typeof data === "string"
+                ? data
+                : data?.reply ??
+                  data?.response ??
+                  data?.output ??
+                  data?.message ??
+                  data?.answer ??
+                  data?.content ??
+                  data?.text ??
+                  data?.data?.reply ??
+                  data?.data?.response ??
+                  data?.data?.output ??
+                  data?.data?.message ??
+                  data?.data?.answer ??
+                  data?.data?.content ??
+                  data?.data?.text ??
+                  "";
+
+        // ==========================================
+        // Validate AI response
+        // ==========================================
+
+        if (
+            typeof aiResponse !== "string" ||
+            !aiResponse.trim()
+        ) {
+            console.error(
+                "🔴 AI CHAT: Backend returned an object but no AI text was found:",
+                data
+            );
+
+            throw new Error(
+                "Backend returned an empty AI response."
+            );
+        }
+
+        console.log(
+            "🟢 AI CHAT: Successfully extracted AI response."
+        );
+
+        // ==========================================
+        // Return normalized response
+        // ==========================================
+
+        return {
+            success: true,
+            response: aiResponse.trim(),
+            output: aiResponse.trim(),
+            reply: aiResponse.trim(),
+        };
 
     } catch (error) {
         console.error(
@@ -613,12 +784,13 @@ export const codingAssistantChat = async (
         throw (
             error.response?.data || {
                 success: false,
-                message: "Failed to get AI response."
+                message:
+                    error.message ||
+                    "Failed to get AI response."
             }
         );
     }
 };
-
 
 // ==========================================
 // AI HISTORY
