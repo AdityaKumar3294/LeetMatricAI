@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const Badge = require("../models/Badge");
 const Note = require("../models/Note");
+const RecentActivity = require("../models/RecentActivity");
 
 const { generateAIInsights } = require("../services/aiInsightService");
 const { generateAICoach } = require("../services/aiCoachService");
@@ -192,6 +193,142 @@ const getDashboard = async (req, res) => {
         const levelData =
             calculateLevel(user.xp || 0);
 
+        // ===================================================
+        // Recent Activities
+        // ===================================================
+
+        const recentActivities =
+            await RecentActivity.find({
+                user: req.user.id
+            })
+            .sort({
+                createdAt: -1
+            })
+            .limit(10);
+
+
+        // ===================================================
+        // Weekly Activity
+        // ===================================================
+
+        // Start of current week (Monday)
+        const now = new Date();
+
+        const startOfWeek = new Date(now);
+
+        const currentDay =
+            startOfWeek.getDay();
+
+        // Sunday = 0
+        // Monday = 1
+
+        const daysFromMonday =
+            currentDay === 0
+                ? 6
+                : currentDay - 1;
+
+        startOfWeek.setDate(
+            startOfWeek.getDate() - daysFromMonday
+        );
+
+        startOfWeek.setHours(
+            0,
+            0,
+            0,
+            0
+        );
+
+
+        // End of current week
+        const endOfWeek = new Date(
+            startOfWeek
+        );
+
+        endOfWeek.setDate(
+            endOfWeek.getDate() + 7
+        );
+
+
+        // Get this user's activities
+        const weeklyActivities =
+            await RecentActivity.find({
+
+                user: req.user.id,
+
+                createdAt: {
+                    $gte: startOfWeek,
+                    $lt: endOfWeek
+                },
+
+                solvedCount: {
+                    $gt: 0
+                }
+
+            });
+
+
+        // Create Monday → Sunday structure
+        const weeklyActivity = [
+
+            {
+                day: "Mon",
+                solved: 0
+            },
+
+            {
+                day: "Tue",
+                solved: 0
+            },
+
+            {
+                day: "Wed",
+                solved: 0
+            },
+
+            {
+                day: "Thu",
+                solved: 0
+            },
+
+            {
+                day: "Fri",
+                solved: 0
+            },
+
+            {
+                day: "Sat",
+                solved: 0
+            },
+
+            {
+                day: "Sun",
+                solved: 0
+            }
+
+        ];
+
+
+        // Add solved problems to correct day
+        weeklyActivities.forEach(
+            (activity) => {
+
+                const activityDate =
+                    new Date(activity.createdAt);
+
+                const day =
+                    activityDate.getDay();
+
+                const index =
+                    day === 0
+                        ? 6
+                        : day - 1;
+
+                weeklyActivity[index].solved +=
+                    activity.solvedCount || 0;
+
+            }
+        );
+
 
         // ===================================================
         // Dashboard Response
@@ -329,44 +466,8 @@ const getDashboard = async (req, res) => {
                 // Weekly Activity
                 // ==========================================
 
-                weeklyActivity: [
-
-                    {
-                        day: "Mon",
-                        solved: 3
-                    },
-
-                    {
-                        day: "Tue",
-                        solved: 6
-                    },
-
-                    {
-                        day: "Wed",
-                        solved: 2
-                    },
-
-                    {
-                        day: "Thu",
-                        solved: 8
-                    },
-
-                    {
-                        day: "Fri",
-                        solved: 5
-                    },
-
-                    {
-                        day: "Sat",
-                        solved: 10
-                    },
-
-                    {
-                        day: "Sun",
-                        solved: 4
-                    }
-
-                ]
+                weeklyActivity,
+                recentActivities,
 
             }
 

@@ -1,10 +1,19 @@
 const { addXPHistory } = require("./xpHistoryService");
+const { addActivity } = require("./activityService");
 
-const calculateXP = async (user, unlockedBadges = []) => {
 
-    const stats = user.leetcodeStats || {};
+const calculateXP = async (
+    user,
+    unlockedBadges = []
+) => {
 
-    const previousXP = user.xp || 0;
+    const stats =
+        user.leetcodeStats || {};
+
+
+    const previousXP =
+        user.xp || 0;
+
 
     // ==========================================
     // Calculate XP
@@ -13,11 +22,14 @@ const calculateXP = async (user, unlockedBadges = []) => {
     const easyXP =
         (stats.easySolved || 0) * 1;
 
+
     const mediumXP =
         (stats.mediumSolved || 0) * 2;
 
+
     const hardXP =
         (stats.hardSolved || 0) * 5;
+
 
     const streakXP =
         (user.streak || 0) * 10;
@@ -30,11 +42,14 @@ const calculateXP = async (user, unlockedBadges = []) => {
     const previousBadgeXP =
         user.xpBreakdown?.badges || 0;
 
+
     const newlyUnlockedBadgeXP =
         unlockedBadges.length * 50;
 
+
     const badgeXP =
-        previousBadgeXP + newlyUnlockedBadgeXP;
+        previousBadgeXP +
+        newlyUnlockedBadgeXP;
 
 
     // ==========================================
@@ -72,7 +87,8 @@ const calculateXP = async (user, unlockedBadges = []) => {
     // Update XP
     // ==========================================
 
-    user.xp = totalXP;
+    user.xp =
+        totalXP;
 
 
     // ==========================================
@@ -98,7 +114,31 @@ const calculateXP = async (user, unlockedBadges = []) => {
             reason:
                 "XP earned from coding progress",
 
-            type: "other"
+            type:
+                "other"
+
+        });
+
+
+        // ==========================================
+        // Recent Activity
+        // ==========================================
+
+        await addActivity({
+
+            user: user._id,
+
+            title:
+                "XP Earned",
+
+            description:
+                `You earned ${earnedXP} XP from your coding progress.`,
+
+            type:
+                "xp",
+
+            solvedCount:
+                0
 
         });
 

@@ -6,32 +6,29 @@ const syncActivities = async ({
     newStats
 }) => {
 
-    // -------------------------
-    // Profile Synced
-    // -------------------------
-
-    await addActivity({
-
-        user: user._id,
-
-        title: "LeetCode Profile Synced",
-
-        description:
-            "Successfully synced your latest LeetCode profile.",
-
-        type: "leetcode"
-
-    });
-
-    // -------------------------
+    // ===================================================
     // Solved Problems
-    // -------------------------
+    // ===================================================
 
     const solvedDifference =
         newStats.totalSolved -
         oldStats.totalSolved;
 
+
     if (solvedDifference > 0) {
+
+        const easyDifference =
+            newStats.easySolved -
+            oldStats.easySolved;
+
+        const mediumDifference =
+            newStats.mediumSolved -
+            oldStats.mediumSolved;
+
+        const hardDifference =
+            newStats.hardSolved -
+            oldStats.hardSolved;
+
 
         await addActivity({
 
@@ -41,22 +38,22 @@ const syncActivities = async ({
                 `Solved ${solvedDifference} New Problem${solvedDifference > 1 ? "s" : ""}`,
 
             description:
+                `Easy +${easyDifference}, ` +
+                `Medium +${mediumDifference}, ` +
+                `Hard +${hardDifference}`,
 
-                `Easy +${newStats.easySolved - oldStats.easySolved}, ` +
+            type: "leetcode",
 
-                `Medium +${newStats.mediumSolved - oldStats.mediumSolved}, ` +
-
-                `Hard +${newStats.hardSolved - oldStats.hardSolved}`,
-
-            type: "leetcode"
+            solvedCount: solvedDifference
 
         });
 
     }
 
-    // -------------------------
-    // Streak
-    // -------------------------
+
+    // ===================================================
+    // Streak Increased
+    // ===================================================
 
     if (user.streak > oldStats.streak) {
 
@@ -69,13 +66,16 @@ const syncActivities = async ({
             description:
                 `Current streak is ${user.streak} day${user.streak > 1 ? "s" : ""}.`,
 
-            type: "streak"
+            type: "streak",
+
+            solvedCount: 0
 
         });
 
     }
 
 };
+
 
 module.exports = {
     syncActivities

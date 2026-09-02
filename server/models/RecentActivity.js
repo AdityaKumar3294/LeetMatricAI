@@ -1,39 +1,77 @@
 const mongoose = require("mongoose");
 
 const recentActivitySchema = new mongoose.Schema(
-  {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
+    {
+        // ==========================================
+        // User
+        // ==========================================
+
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+
+
+        // ==========================================
+        // Activity Type
+        // ==========================================
+
+        type: {
+            type: String,
+            required: true,
+        },
+
+
+        // ==========================================
+        // Activity Title
+        // ==========================================
+
+        title: {
+            type: String,
+            required: true,
+        },
+
+
+        // ==========================================
+        // Activity Description
+        // ==========================================
+
+        description: {
+            type: String,
+            default: "",
+        },
+
+
+        // ==========================================
+        // Problems Solved
+        // Used by Weekly Activity Chart
+        // ==========================================
+
+        solvedCount: {
+            type: Number,
+            default: 0,
+        },
+
+
+        // ==========================================
+        // Created At
+        // ==========================================
+
+        createdAt: {
+            type: Date,
+            default: Date.now,
+        },
     },
 
-    type: {
-      type: String,
-      required: true,
-    },
 
-    title: {
-      type: String,
-      required: true,
-    },
-
-    description: {
-      type: String,
-      default: "",
-    },
-
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-  },
-  {
-    versionKey: false,
-  }
+    {
+        versionKey: false,
+    }
 );
 
+
 module.exports = mongoose.model(
-  "RecentActivity",
-  recentActivitySchema
+    "RecentActivity",
+    recentActivitySchema
 );
