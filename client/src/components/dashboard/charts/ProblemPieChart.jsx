@@ -82,7 +82,7 @@ const ProblemPieChart = ({ dashboard }) => {
 
             </div>
 
-            <ResponsiveContainer width="100%" height="85%">
+            <ResponsiveContainer width="100%" height="90%">
 
                 <PieChart>
 

@@ -1,7 +1,8 @@
 import {
     BrowserRouter,
     Routes,
-    Route
+    Route,
+    Navigate
 } from "react-router-dom";
 
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -34,6 +35,11 @@ function AppRoutes() {
 
                 <Route
                     path="/"
+                    element={<Navigate to="/login" replace />}
+                />
+
+                <Route
+                    path="/login"
                     element={<Login />}
                 />
 

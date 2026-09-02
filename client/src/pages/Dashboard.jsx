@@ -44,15 +44,57 @@ function Dashboard() {
 
             console.log("Sync Response:", response);
 
-            // Refresh dashboard data
-            const dashboardResponse = await getDashboardData();
 
-            setDashboard(dashboardResponse.dashboard);
-            setAIInsights(dashboardResponse.dashboard?.aiInsights);
+            // ==========================================
+            // Refresh Dashboard
+            // ==========================================
+
+            const dashboardResponse =
+                await getDashboardData();
+
+            console.log(
+                "🔥 Dashboard After Sync:",
+                dashboardResponse
+            );
+
+            console.log(
+                "🔥 Weekly Activity After Sync:",
+                dashboardResponse.dashboard?.weeklyActivity
+            );
+
+
+            setDashboard(
+                dashboardResponse.dashboard
+            );
+
+            setAIInsights(
+                dashboardResponse.dashboard?.aiInsights
+            );
+
+
+            // ==========================================
+            // Refresh Recent Activities
+            // ==========================================
+
+            const activityResponse =
+                await getRecentActivities();
+
+            console.log(
+                "🔥 Activities After Sync:",
+                activityResponse.activities
+            );
+
+            setActivities(
+                activityResponse.activities
+            );
+
 
         } catch (error) {
 
-            console.log("Sync Error:", error);
+            console.log(
+                "Sync Error:",
+                error
+            );
 
         } finally {
 
@@ -69,6 +111,12 @@ function Dashboard() {
             try {
 
                 const response = await getDashboardData();
+
+                console.log("🔥 DASHBOARD RESPONSE:", response);
+                console.log(
+                    "🔥 WEEKLY ACTIVITY:",
+                    response.dashboard?.weeklyActivity
+                );
 
                 setDashboard(response.dashboard);
 
