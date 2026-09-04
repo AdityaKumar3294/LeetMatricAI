@@ -146,10 +146,50 @@ const buildProfileData = (user) => {
     };
 };
 
+// ============================================================
+// AI ANALYSIS CACHE HELPERS
+// ============================================================
+
+const createAnalysisSnapshot = (profileData) => {
+    return {
+        totalSolved: profileData.totalSolved || 0,
+        easySolved: profileData.easySolved || 0,
+        mediumSolved: profileData.mediumSolved || 0,
+        hardSolved: profileData.hardSolved || 0,
+        ranking: profileData.ranking || 0,
+        reputation: profileData.reputation || 0,
+        xp: profileData.xp || 0,
+        streak: profileData.streak || 0
+    };
+};
+
+const isSameAnalysisSnapshot = (savedSnapshot, currentSnapshot) => {
+    if (!savedSnapshot) {
+        return false;
+    }
+
+    return (
+        savedSnapshot.totalSolved === currentSnapshot.totalSolved &&
+        savedSnapshot.easySolved === currentSnapshot.easySolved &&
+        savedSnapshot.mediumSolved === currentSnapshot.mediumSolved &&
+        savedSnapshot.hardSolved === currentSnapshot.hardSolved &&
+        savedSnapshot.ranking === currentSnapshot.ranking &&
+        savedSnapshot.reputation === currentSnapshot.reputation &&
+        savedSnapshot.xp === currentSnapshot.xp &&
+        savedSnapshot.streak === currentSnapshot.streak
+    );
+};
+
 
 // ============================================================
-// AI PERFORMANCE ANALYSIS
+// GET AI PERFORMANCE ANALYSIS
+// ============================================================
+
+// ============================================================
+// GET AI PERFORMANCE ANALYSIS
 // GET /api/ai/analysis
+//
+// CACHE-FIRST
 // ============================================================
 
 const getAIAnalysis = async (req, res) => {
@@ -160,43 +200,170 @@ const getAIAnalysis = async (req, res) => {
             "=> [AI Controller] 1. Received request for AI Analysis..."
         );
 
-        const user =
-            await getCurrentUser(req);
+
+        // ------------------------------------------------------
+        // GET USER
+        // ------------------------------------------------------
+
+        const user = await getCurrentUser(req);
 
         console.log(
             "=> [AI Controller] 2. User authenticated successfully."
         );
 
-        const profileData =
-            buildProfileData(user);
+
+        // ------------------------------------------------------
+        // BUILD PROFILE DATA
+        // ------------------------------------------------------
+
+        const profileData = buildProfileData(user);
 
         console.log(
-            "=> [AI Controller] 3. Profile data built. Calling Gemini API..."
+            "=> [AI Controller] 3. Profile data built."
         );
+
+
+        // ------------------------------------------------------
+        // CURRENT PROFILE SNAPSHOT
+        // ------------------------------------------------------
+
+        const currentSnapshot =
+            createAnalysisSnapshot(profileData);
+
+
+        // ------------------------------------------------------
+        // CHECK SAVED ANALYSIS
+        // ------------------------------------------------------
+
+        const savedAnalysis =
+            user.aiAnalysis;
+
+
+        const hasCachedAnalysis =
+            savedAnalysis &&
+            savedAnalysis.content &&
+            savedAnalysis.generatedAt &&
+            isSameAnalysisSnapshot(
+                savedAnalysis.statsSnapshot,
+                currentSnapshot
+            );
+
+
+        // ======================================================
+        // CACHE HIT
+        // ======================================================
+
+        if (hasCachedAnalysis) {
+
+            console.log(
+                "🟢 [AI Controller] CACHE HIT"
+            );
+
+            console.log(
+                "🟢 Returning saved AI analysis."
+            );
+
+            return res.status(200).json({
+
+                success: true,
+
+                data: savedAnalysis.content,
+
+                cached: true,
+
+                generatedAt:
+                    savedAnalysis.generatedAt
+
+            });
+        }
+
+
+        // ======================================================
+        // CACHE MISS
+        // ======================================================
+
+        console.log(
+            "🟡 [AI Controller] CACHE MISS"
+        );
+
+        console.log(
+            "🟡 No valid cached analysis found."
+        );
+
+        console.log(
+            "🟡 Calling Gemini API..."
+        );
+
+
+        // ------------------------------------------------------
+        // GENERATE NEW ANALYSIS
+        // ------------------------------------------------------
 
         const analysis =
-            await generateAIAnalysis(profileData);
+            await generateAIAnalysis(
+                profileData
+            );
+
 
         console.log(
-            "=> [AI Controller] 4. Gemini analysis generated successfully!"
+            "🟢 Gemini analysis generated successfully."
         );
 
-        res.status(200).json({
+
+        // ------------------------------------------------------
+        // SAVE TO DATABASE
+        // ------------------------------------------------------
+
+        const generatedAt =
+            new Date();
+
+
+        user.aiAnalysis = {
+
+            content: analysis,
+
+            generatedAt,
+
+            statsSnapshot:
+                currentSnapshot
+
+        };
+
+
+        await user.save();
+
+
+        console.log(
+            "🟢 AI analysis saved to MongoDB."
+        );
+
+
+        // ------------------------------------------------------
+        // RETURN NEW ANALYSIS
+        // ------------------------------------------------------
+
+        return res.status(200).json({
 
             success: true,
 
-            data: analysis
+            data: analysis,
+
+            cached: false,
+
+            generatedAt
 
         });
+
 
     } catch (error) {
 
         console.error(
-            "=> [AI Controller Error]:",
+            "🔴 [AI Controller Error]:",
             error
         );
 
-        res.status(500).json({
+
+        return res.status(500).json({
 
             success: false,
 
@@ -205,10 +372,98 @@ const getAIAnalysis = async (req, res) => {
                 "AI Analysis Failed"
 
         });
-
     }
 };
 
+
+// ============================================================
+// FORCE REGENERATE AI PERFORMANCE ANALYSIS
+// POST /api/ai/analysis/regenerate
+// ============================================================
+
+const regenerateAIAnalysis = async (req, res) => {
+    try {
+        console.log(
+            "=> [AI Controller] 1. Force regeneration requested..."
+        );
+
+        const user = await getCurrentUser(req);
+
+        console.log(
+            "=> [AI Controller] 2. User authenticated successfully."
+        );
+
+        const profileData = buildProfileData(user);
+
+        // ============================================================
+        // CURRENT PROFILE SNAPSHOT
+        // ============================================================
+
+        const currentSnapshot = {
+            totalSolved: profileData.totalSolved,
+            easySolved: profileData.easySolved,
+            mediumSolved: profileData.mediumSolved,
+            hardSolved: profileData.hardSolved,
+            ranking: profileData.ranking,
+            reputation: profileData.reputation,
+            xp: profileData.xp,
+            streak: profileData.streak
+        };
+
+        // ============================================================
+        // FORCE GEMINI GENERATION
+        // ============================================================
+
+        console.log(
+            "=> [AI Controller] 3. Calling Gemini API for NEW analysis..."
+        );
+
+        const analysis =
+            await generateAIAnalysis(profileData);
+
+        console.log(
+            "=> [AI Controller] 4. New Gemini analysis generated successfully!"
+        );
+
+        // ============================================================
+        // SAVE NEW ANALYSIS
+        // ============================================================
+
+        user.aiAnalysis = {
+            content: analysis,
+            generatedAt: new Date(),
+            statsSnapshot: currentSnapshot
+        };
+
+        await user.save();
+
+        console.log(
+            "=> [AI Controller] 5. New AI analysis saved to database."
+        );
+
+        return res.status(200).json({
+            success: true,
+            data: analysis,
+            cached: false,
+            regenerated: true,
+            generatedAt: user.aiAnalysis.generatedAt
+        });
+
+    } catch (error) {
+
+        console.error(
+            "=> [AI Controller] Force Regeneration Error:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message:
+                error.message ||
+                "Failed to regenerate AI analysis"
+        });
+    }
+};
 
 // ============================================================
 // GENERATE NEW STUDY PLAN
@@ -2850,7 +3105,7 @@ const getFriendComparison = async (
 module.exports = {
 
     getAIAnalysis,
-
+    regenerateAIAnalysis,
     getStudyPlan,
 
     generateNewStudyPlan,

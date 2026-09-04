@@ -2,6 +2,7 @@ const express = require("express");
 
 const {
     getAIAnalysis,
+    regenerateAIAnalysis,
 
     // Study Plan
     getStudyPlan,
@@ -50,6 +51,12 @@ router.get(
     "/analysis",
     authMiddleware,
     getAIAnalysis
+);
+
+router.post(
+    "/analysis/regenerate",
+    authMiddleware,
+    regenerateAIAnalysis
 );
 
 router.get(

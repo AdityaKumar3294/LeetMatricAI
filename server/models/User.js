@@ -216,6 +216,67 @@ const userSchema = new mongoose.Schema(
     },
 
     // ============================================================
+    // AI PERFORMANCE ANALYSIS
+    // ============================================================
+
+    aiAnalysis: {
+      // Gemini generated analysis
+      content: {
+        type: mongoose.Schema.Types.Mixed,
+        default: null,
+      },
+
+      // When this analysis was generated
+      generatedAt: {
+        type: Date,
+        default: null,
+      },
+
+      // Profile data used to generate this analysis
+      statsSnapshot: {
+        totalSolved: {
+          type: Number,
+          default: 0,
+        },
+
+        easySolved: {
+          type: Number,
+          default: 0,
+        },
+
+        mediumSolved: {
+          type: Number,
+          default: 0,
+        },
+
+        hardSolved: {
+          type: Number,
+          default: 0,
+        },
+
+        ranking: {
+          type: Number,
+          default: 0,
+        },
+
+        reputation: {
+          type: Number,
+          default: 0,
+        },
+
+        xp: {
+          type: Number,
+          default: 0,
+        },
+
+        streak: {
+          type: Number,
+          default: 0,
+        },
+      },
+    },
+
+    // ============================================================
     // COMPANY ROADMAPS
     // ============================================================
 
