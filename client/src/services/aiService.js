@@ -28,6 +28,41 @@ export const getAIAnalysis = async () => {
     }
 };
 
+// ==========================================
+// GENERATE AI PERFORMANCE ANALYSIS
+// POST /api/ai/analysis/regenerate
+// ==========================================
+export const generateAIAnalysis = async () => {
+    try {
+        console.log("🔵 FRONTEND: Generating AI performance analysis...");
+
+        const response = await API.post(
+            "/ai/analysis/regenerate",
+            {}
+        );
+
+        console.log(
+            "🟢 FRONTEND: AI performance analysis generated:",
+            response.data
+        );
+
+        return response.data;
+
+    } catch (error) {
+        console.error(
+            "🔴 GENERATE AI ANALYSIS ERROR:",
+            error
+        );
+
+        throw (
+            error.response?.data || {
+                success: false,
+                message: "Failed to generate AI analysis."
+            }
+        );
+    }
+};
+
 // ============================================================
 // EXPORT STUDY PLAN PDF
 // GET /api/ai/study-plan/pdf

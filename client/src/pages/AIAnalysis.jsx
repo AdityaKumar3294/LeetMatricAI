@@ -4,7 +4,7 @@ import Sidebar from "../components/layout/Sidebar";
 import Navbar from "../components/layout/Navbar";
 
 import { useTheme } from "../context/ThemeContext";
-import { getAIAnalysis } from '../services/aiService';
+import { getAIAnalysis, generateAIAnalysis} from '../services/aiService';
 
 import {
     Brain,
@@ -25,44 +25,171 @@ function AIAnalysis() {
     const { theme } = useTheme();
 
     const [analysis, setAnalysis] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [generating, setGenerating] = useState(false);
     const [error, setError] = useState(null);
+    const [hasCheckedAnalysis, setHasCheckedAnalysis] = useState(false);
 
 
     const fetchAnalysis = async () => {
         try {
-            console.log("🔵 FRONTEND STEP 1: UI triggered fetchAnalysis...");
+            console.log("🔵 Checking for existing AI analysis...");
+
             setLoading(true);
             setError(null);
 
-            console.log("🔵 FRONTEND STEP 2: Calling getAIAnalysis() service...");
             const result = await getAIAnalysis();
-            
-            console.log("🔵 FRONTEND STEP 5: Received backend result:", result);
+
+            console.log(
+                "🟢 Existing AI analysis response:",
+                result
+            );
 
             if (result.success && result.data) {
                 setAnalysis(result.data);
             } else {
-                throw new Error(result.message || "Failed to load analysis data.");
+                setAnalysis(null);
             }
+
         } catch (error) {
-            console.log("🔴 FRONTEND ERROR:", error);
-            setError(error.message || "Unable to load AI analysis. Please try again.");
+            console.error(
+                "🔴 FETCH AI ANALYSIS ERROR:",
+                error
+            );
+
+            setError(
+                error.message ||
+                "Unable to load AI analysis."
+            );
+
         } finally {
             setLoading(false);
+            setHasCheckedAnalysis(true);
         }
     };
 
-    useEffect(() => {
-        fetchAnalysis();
-    }, 
-    []);
+    const generateAnalysis = async () => {
+        try {
+            console.log("🟣 GENERATE BUTTON CLICKED");
+
+            setGenerating(true);
+            setError(null);
+
+            const result = await generateAIAnalysis();
+
+            console.log(
+                "🟢 NEW AI ANALYSIS GENERATED:",
+                result
+            );
+
+            if (result.success && result.data) {
+                setAnalysis(result.data);
+            } else {
+                throw new Error(
+                    result.message ||
+                    "Failed to generate AI analysis."
+                );
+            }
+
+        } catch (error) {
+            console.error(
+                "🔴 GENERATE AI ANALYSIS ERROR:",
+                error
+            );
+
+            setError(
+                error.message ||
+                "Unable to generate AI analysis. Please try again."
+            );
+
+        } finally {
+            setGenerating(false);
+        }
+    };
+
+    // ==========================================
+    // Generate Analysis Screen
+    // ==========================================
+
+    if (!analysis && !generating) {
+
+        return (
+            <div
+                className={`flex min-h-screen ${
+                    theme === "dark"
+                        ? "bg-slate-950 text-white"
+                        : "bg-slate-100 text-slate-900"
+                }`}
+            >
+
+                <Sidebar />
+
+                <div className="flex-1 ml-64">
+
+                    <Navbar />
+
+                    <main className="p-6">
+
+                        <div className="max-w-3xl mx-auto mt-20">
+
+                            <div
+                                className={`rounded-2xl p-10 text-center border shadow-sm ${
+                                    theme === "dark"
+                                        ? "bg-slate-900 border-slate-800"
+                                        : "bg-white border-slate-200"
+                                }`}
+                            >
+
+                                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-blue-600 flex items-center justify-center">
+                                    <Brain
+                                        size={40}
+                                        className="text-white"
+                                    />
+                                </div>
+
+                                <h1 className="text-3xl font-bold mb-4">
+                                    AI Performance Analyzer
+                                </h1>
+
+                                <p
+                                    className={`max-w-xl mx-auto mb-8 leading-7 ${
+                                        theme === "dark"
+                                            ? "text-slate-400"
+                                            : "text-slate-600"
+                                    }`}
+                                >
+                                    Get personalized insights about your
+                                    LeetCode performance, strengths,
+                                    weaknesses, interview readiness,
+                                    and recommended next steps.
+                                </p>
+
+                                <button
+                                    onClick={generateAnalysis}
+                                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition"
+                                >
+                                    <Brain size={20} />
+
+                                    Generate AI Analysis
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </main>
+
+                </div>
+
+            </div>
+        );
+    }
 
     // ==========================================
     // Loading
     // ==========================================
 
-    if (loading) {
+    if (generating) {
 
         return (
 
@@ -90,7 +217,11 @@ function AIAnalysis() {
                             />
 
                             <p className="text-lg font-semibold">
-                                AI is analyzing your performance...
+                                Gemini is analyzing your performance...
+                            </p>
+
+                            <p className="text-sm text-slate-500 mt-2">
+                                This may take a few seconds.
                             </p>
 
                         </div>
@@ -160,14 +291,16 @@ function AIAnalysis() {
                                 </p>
 
                                 <button
-                                    onClick={fetchAnalysis}
-                                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition"
+                                    onClick={generateAnalysis}
+                                    disabled={generating}
+                                    className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold transition"
                                 >
+                                    <RefreshCw
+                                        size={18}
+                                        className={generating ? "animate-spin" : ""}
+                                    />
 
-                                    <RefreshCw size={18} />
-
-                                    Try Again
-
+                                    Regenerate Analysis
                                 </button>
 
                             </div>
