@@ -40,12 +40,16 @@ function AppRoutes() {
 
                 <Route
                     path="/login"
-                    element={<Login />}
+                    element={
+                        <Login />
+                    }
                 />
 
                 <Route
                     path="/register"
-                    element={<Register />}
+                    element={
+                        <Register />
+                    }
                 />
 
 
