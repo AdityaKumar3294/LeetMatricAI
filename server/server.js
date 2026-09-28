@@ -21,6 +21,7 @@ const statisticsRoutes = require("./routes/statisticsRoutes");
 const errorHandler = require("./middleware/errorHandler");
 const recentActivityRoutes = require("./routes/recentActivityRoutes");
 const xpRoutes = require("./routes/xpRoutes");
+const activityRoutes = require("./routes/activityRoutes");
 
 // Create Express App
 const app = express();
@@ -52,6 +53,7 @@ app.use("/api/statistics", statisticsRoutes);
 app.use(errorHandler);
 app.use("/api/recent-activity", recentActivityRoutes);
 app.use("/api/xp", xpRoutes);
+app.use("/api/activity", activityRoutes);
 
 // Home Route
 app.get("/", (req, res) => {

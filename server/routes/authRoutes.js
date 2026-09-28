@@ -1,10 +1,12 @@
 const express = require("express");
+
 const router = express.Router();
 
 const {
     registerUser,
     loginUser,
-    getCurrentUser
+    getCurrentUser,
+    updateProfile
 } = require("../controllers/authController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -14,7 +16,11 @@ const {
     validateLogin
 } = require("../validators/authValidator");
 
-// Public Routes
+
+// ============================================================
+// PUBLIC ROUTES
+// ============================================================
+
 router.post(
     "/register",
     validateRegister,
@@ -27,7 +33,24 @@ router.post(
     loginUser
 );
 
-// Protected Route
-router.get("/me", authMiddleware, getCurrentUser);
+
+// ============================================================
+// PROTECTED ROUTES
+// ============================================================
+
+// Get current logged-in user
+router.get(
+    "/me",
+    authMiddleware,
+    getCurrentUser
+);
+
+// Update profile
+router.put(
+    "/profile",
+    authMiddleware,
+    updateProfile
+);
+
 
 module.exports = router;

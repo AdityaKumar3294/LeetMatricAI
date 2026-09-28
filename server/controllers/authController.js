@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const validator = require("validator");
 
 // ============================================================
 // REGISTER USER
@@ -269,6 +270,144 @@ const getCurrentUser = async (req, res) => {
     }
 };
 
+// ============================================================
+// UPDATE USER PROFILE
+// ============================================================
+
+const updateProfile = async (req, res) => {
+    try {
+        const {
+            name,
+            email,
+            leetcodeUsername,
+            profileImage
+        } = req.body;
+
+        // ----------------------------------------------------
+        // Find logged-in user
+        // ----------------------------------------------------
+
+        const user = await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // ----------------------------------------------------
+        // Validate and update name
+        // ----------------------------------------------------
+
+        if (name !== undefined) {
+            const normalizedName = name.trim();
+
+            if (normalizedName.length < 3) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Name must contain at least 3 characters"
+                });
+            }
+
+            if (normalizedName.length > 50) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Name cannot exceed 50 characters"
+                });
+            }
+
+            user.name = normalizedName;
+        }
+
+        // ----------------------------------------------------
+        // Validate and update email
+        // ----------------------------------------------------
+
+        if (email !== undefined) {
+            const normalizedEmail = email.trim().toLowerCase();
+
+            if (!validator.isEmail(normalizedEmail)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Please enter a valid email"
+                });
+            }
+
+            // Check if another account already uses this email
+            const existingUser = await User.findOne({
+                email: normalizedEmail,
+                _id: { $ne: user._id }
+            });
+
+            if (existingUser) {
+                return res.status(400).json({
+                    success: false,
+                    message: "This email is already in use"
+                });
+            }
+
+            user.email = normalizedEmail;
+        }
+
+        // ----------------------------------------------------
+        // Update LeetCode username
+        // ----------------------------------------------------
+
+        if (leetcodeUsername !== undefined) {
+            user.leetcodeUsername =
+                leetcodeUsername.trim();
+        }
+
+        // ----------------------------------------------------
+        // Update profile image
+        // ----------------------------------------------------
+
+        if (profileImage !== undefined) {
+            user.profileImage =
+                profileImage.trim();
+        }
+
+        // ----------------------------------------------------
+        // Save changes
+        // ----------------------------------------------------
+
+        await user.save();
+
+        // ----------------------------------------------------
+        // Response
+        // ----------------------------------------------------
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                leetcodeUsername: user.leetcodeUsername,
+                profileImage: user.profileImage
+            }
+        });
+
+    } catch (error) {
+
+        console.error("UPDATE PROFILE ERROR:", error);
+
+        // MongoDB duplicate email
+        if (error.code === 11000) {
+            return res.status(400).json({
+                success: false,
+                message: "This email is already in use"
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "Server error while updating profile"
+        });
+    }
+};
 
 // ============================================================
 // EXPORT
@@ -277,5 +416,6 @@ const getCurrentUser = async (req, res) => {
 module.exports = {
     registerUser,
     loginUser,
-    getCurrentUser
+    getCurrentUser,
+    updateProfile
 };
